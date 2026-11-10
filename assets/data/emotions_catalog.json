@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-10",
+  "notice": "Vocabulario orientativo. No es una clasificación clínica cerrada. El paciente puede seleccionar varias emociones y añadir las suyas propias.",
+  "groups": [
+    {
+      "id": "asco",
+      "name": "Asco",
+      "color": "#8C6E5D",
+      "icon": "sentiment_very_dissatisfied",
+      "description": "Reacción de rechazo ante algo que percibimos desagradable, ofensivo o contrario a nuestros valores.",
+      "emotions": [
+        {
+          "id": "asco_repugnancia",
+          "name": "Repugnancia",
+          "description": "Rechazo intenso hacia algo que consideramos desagradable."
+        },
+        {
+          "id": "asco_aversion",
+          "name": "Aversión",
+          "description": "Inclinación a evitar algo que nos resulta desagradable."
+        },
+        {
+          "id": "asco_rechazo",
+          "name": "Rechazo",
+          "description": "No aceptar o no querer algo por resultarnos desagradable o inadecuado."
+        },
+        {
+          "id": "asco_desagrado",
+          "name": "Desagrado",
+          "description": "Malestar leve o moderado ante algo que no nos gusta."
+        },
+        {
+          "id": "asco_repulsion",
+          "name": "Repulsión",
+          "description": "Sensación fuerte de rechazo físico o emocional."
+        },
+        {
+          "id": "asco_desconfianza",
+          "name": "Desconfianza",
+          "description": "Sensación de recelo o falta de seguridad hacia alguien o algo."
+        }
+      ]
+    },
+    {
+      "id": "ira",
+      "name": "Ira",
+      "color": "#C97B6E",
+      "icon": "local_fire_department",
+      "description": "Respuesta ante una situación que percibimos como injusta, amenazante o frustrante.",
+      "emotions": [
+        {
+          "id": "ira_enfado",
+          "name": "Enfado",
+          "description": "Molestia o disgusto ante algo que no nos parece bien."
+        },
+        {
+          "id": "ira_rabia",
+          "name": "Rabia",
+          "description": "Ira muy intensa, a menudo con impulso de reaccionar."
+        },
+        {
+          "id": "ira_frustracion",
+          "name": "Frustración",
+          "description": "Malestar cuando algo no sale como esperábamos o se bloquea un deseo."
+        },
+        {
+          "id": "ira_irritacion",
+          "name": "Irritación",
+          "description": "Molestia fácil de activar, a veces por acumulación de pequeños hechos."
+        },
+        {
+          "id": "ira_indignacion",
+          "name": "Indignación",
+          "description": "Ira ante algo que consideramos injusto o moralmente incorrecto."
+        },
+        {
+          "id": "ira_resentimiento",
+          "name": "Resentimiento",
+          "description": "Malestar persistente hacia alguien por un agravio pasado."
+        },
+        {
+          "id": "ira_hostilidad",
+          "name": "Hostilidad",
+          "description": "Actitud tensa, crítica o confrontativa hacia los demás."
+        }
+      ]
+    },
+    {
+      "id": "tristeza",
+      "name": "Tristeza",
+      "color": "#6B8CAE",
+      "icon": "water_drop",
+      "description": "Emoción asociada a la pérdida, la decepción o la desconexión con lo que valoramos.",
+      "emotions": [
+        {
+          "id": "tristeza_pena",
+          "name": "Pena",
+          "description": "Dolor emocional suave o profundo por algo que echamos de menos."
+        },
+        {
+          "id": "tristeza_melancolia",
+          "name": "Melancolía",
+          "description": "Tristeza tranquila, a menudo ligada a recuerdos o al paso del tiempo."
+        },
+        {
+          "id": "tristeza_desilusion",
+          "name": "Desilusión",
+          "description": "Decepción al comprobar que algo no era como esperábamos."
+        },
+        {
+          "id": "tristeza_soledad",
+          "name": "Soledad",
+          "description": "Sensación de falta de compañía o de conexión significativa."
+        },
+        {
+          "id": "tristeza_desanimo",
+          "name": "Desánimo",
+          "description": "Falta de energía o de ganas para afrontar las actividades."
+        },
+        {
+          "id": "tristeza_desesperanza",
+          "name": "Desesperanza",
+          "description": "Sensación de que las cosas no van a mejorar."
+        },
+        {
+          "id": "tristeza_decepcion",
+          "name": "Decepción",
+          "description": "Malestar cuando alguien o algo no cumple lo que esperábamos."
+        }
+      ]
+    },
+    {
+      "id": "miedo",
+      "name": "Miedo",
+      "color": "#7D74A8",
+      "icon": "nights_stay",
+      "description": "Respuesta ante un peligro percibido, real o imaginado, que nos prepara para protegernos.",
+      "emotions": [
+        {
+          "id": "miedo_temor",
+          "name": "Temor",
+          "description": "Miedo moderado ante la posibilidad de que ocurra algo."
+        },
+        {
+          "id": "miedo_ansiedad",
+          "name": "Ansiedad",
+          "description": "Alerta o inquietud difusa ante una amenaza que no siempre está clara."
+        },
+        {
+          "id": "miedo_inseguridad",
+          "name": "Inseguridad",
+          "description": "Duda sobre la propia capacidad o sobre lo que va a pasar."
+        },
+        {
+          "id": "miedo_preocupacion",
+          "name": "Preocupación",
+          "description": "Pensamientos repetidos sobre un posible problema."
+        },
+        {
+          "id": "miedo_angustia",
+          "name": "Angustia",
+          "description": "Malestar intenso con sensación de opresión o falta de aire."
+        },
+        {
+          "id": "miedo_panico",
+          "name": "Pánico",
+          "description": "Miedo muy intenso y repentino que desborda la capacidad de respuesta."
+        },
+        {
+          "id": "miedo_vulnerabilidad",
+          "name": "Vulnerabilidad",
+          "description": "Sensación de estar expuesto o sin protección suficiente."
+        }
+      ]
+    },
+    {
+      "id": "sorpresa",
+      "name": "Sorpresa",
+      "color": "#D6A84F",
+      "icon": "bolt",
+      "description": "Reacción breve ante algo inesperado o que no encaja con lo que anticipábamos.",
+      "emotions": [
+        {
+          "id": "sorpresa_asombro",
+          "name": "Asombro",
+          "description": "Impresión ante algo extraordinario o muy llamativo."
+        },
+        {
+          "id": "sorpresa_admiracion",
+          "name": "Admiración",
+          "description": "Reconocimiento y agrado ante algo que consideramos valioso."
+        },
+        {
+          "id": "sorpresa_desconcierto",
+          "name": "Desconcierto",
+          "description": "Desorientación al no saber cómo interpretar lo que ocurre."
+        },
+        {
+          "id": "sorpresa_confusion",
+          "name": "Confusión",
+          "description": "Dificultad para ordenar ideas o entender una situación."
+        },
+        {
+          "id": "sorpresa_estupefaccion",
+          "name": "Estupefacción",
+          "description": "Asombro extremo que deja sin reacción inmediata."
+        },
+        {
+          "id": "sorpresa_sobresalto",
+          "name": "Sobresalto",
+          "description": "Reacción repentina ante un estímulo inesperado."
+        }
+      ]
+    },
+    {
+      "id": "felicidad",
+      "name": "Felicidad",
+      "color": "#7FAF8B",
+      "icon": "wb_sunny",
+      "description": "Estado de bienestar, satisfacción o conexión positiva con nosotros mismos y con los demás.",
+      "emotions": [
+        {
+          "id": "felicidad_alegria",
+          "name": "Alegría",
+          "description": "Sensación de contento y energía positiva."
+        },
+        {
+          "id": "felicidad_satisfaccion",
+          "name": "Satisfacción",
+          "description": "Bienestar por haber logrado o vivido algo valioso."
+        },
+        {
+          "id": "felicidad_entusiasmo",
+          "name": "Entusiasmo",
+          "description": "Ilusión activa que impulsa a implicarse en algo."
+        },
+        {
+          "id": "felicidad_ilusion",
+          "name": "Ilusión",
+          "description": "Esperanza y ganas ante algo que deseamos que ocurra."
+        },
+        {
+          "id": "felicidad_gratitud",
+          "name": "Gratitud",
+          "description": "Reconocimiento hacia alguien o algo que nos ha aportado."
+        },
+        {
+          "id": "felicidad_orgullo",
+          "name": "Orgullo",
+          "description": "Satisfacción por uno mismo o por algo propio."
+        },
+        {
+          "id": "felicidad_serenidad",
+          "name": "Serenidad",
+          "description": "Calma y equilibrio emocional."
+        },
+        {
+          "id": "felicidad_optimismo",
+          "name": "Optimismo",
+          "description": "Tendencia a esperar resultados favorables."
+        }
+      ]
+    }
+  ]
+}
