@@ -12,7 +12,8 @@ manual antes de entregar la app a pacientes.
 | Flutter | 3.47.9 (stable) |
 | Dart | 3.13.7 |
 | Java | OpenJDK 17.0.11 |
-| Android SDK | **No instalado** en esta máquina |
+| Android SDK | 36.0.0 en `%LOCALAPPDATA%\Android\Sdk` |
+| NDK / CMake | 28.2.13676358 / 3.22.1 (instalados por Gradle) |
 | Xcode / macOS | No disponible |
 
 La ruta de Flutter usada en las comprobaciones es `C:\tools\flutter\bin\flutter.bat`.
@@ -57,13 +58,36 @@ faltantes.
 
 ### Android
 
-**No se ha generado un APK en esta máquina** porque no hay Android SDK
-instalado (`ANDROID_HOME` vacío y no existe
-`%LOCALAPPDATA%\Android\Sdk`). No se debe interpretar el proyecto como
-"compilado" hasta completar estos pasos:
+**APK generados y verificados el 2026-11-10** en esta máquina con Android SDK 36:
+
+| Variante | Comando | Archivo | Tamaño | Resultado |
+| --- | --- | --- | --- | --- |
+| Debug | `flutter build apk --debug` | `build/app/outputs/flutter-apk/app-debug.apk` | 181.766.843 bytes (181,8 MB) | `√ Built` |
+| Release | `flutter build apk --release` | `build/app/outputs/flutter-apk/app-release.apk` | 66.885.768 bytes (63,8 MB) | `√ Built` |
+
+Verificación con `aapt dump badging`:
+
+```text
+package: name='com.psicologia.diario_emocional' versionCode='1' versionName='1.0.0'
+sdkVersion:'24'
+targetSdkVersion:'36'
+application-label:'Diario Emocional'
+```
+
+El APK release está firmado con el certificado **Android Debug**
+(`CN=Android Debug`), tal y como indica `apksigner verify --print-certs`. Es
+instalable y válido para pruebas, pero no para publicar en Google Play.
+
+La primera compilación tardó unos 47 minutos porque Gradle descargó la
+distribución, el NDK 28.2 y CMake 3.22.1. La compilación release posterior
+tardó unos 13 minutos. El aviso de Flutter sobre `firebase_auth` y
+`firebase_core` usando el Kotlin Gradle Plugin es una advertencia de
+compatibilidad futura, no un error de compilación.
+
+Pasos para reproducirlo en otra máquina:
 
 1. Instala Android Studio o las *command-line tools*.
-2. Instala `platform-tools`, un `platform` reciente y `build-tools`.
+2. Instala `platform-tools`, `platforms;android-36` y `build-tools;36.0.0`.
 3. Acepta las licencias:
 
    ```bash
@@ -85,10 +109,12 @@ instalado (`ANDROID_HOME` vacío y no existe
    flutter build apk --release
    ```
 
-El APK se genera en `build/app/outputs/flutter-apk/`.
-
 Si `flutter build apk` falla por versión de Java o de Gradle, revisa
 `android/gradle/wrapper/gradle-wrapper.properties` (Gradle 9.3.1) y usa Java 17.
+
+**Pendiente**: instalar el APK en un dispositivo Android físico y recorrer la
+lista de comprobación manual de la sección 4. La compilación está verificada;
+la ejecución en un móvil real, todavía no.
 
 ### iOS
 
@@ -156,7 +182,7 @@ app. Marca solo lo que hayas verificado.
 - [ ] Los acentos, la eñe y los signos de apertura se ven correctamente.
 - [ ] Las páginas están numeradas y el pie indica la fecha de generación.
 - [ ] La nota de privacidad aparece en el informe.
-- [ ] Un día sin registros genera un PDF válido y comprensible.
+- [ ] Un día sin registros muestra un aviso y desactiva los botones de informe.
 - [ ] La vista previa se puede cerrar y volver al historial.
 - [ ] Guardar muestra la ruta o confirmación y el archivo se puede abrir.
 - [ ] Compartir abre el diálogo del sistema con el PDF adjunto.
@@ -248,7 +274,8 @@ en `.gitignore`.
 
 | Elemento | Motivo |
 | --- | --- |
-| APK de Android | Android SDK no instalado en esta máquina |
+| Instalación y uso en un móvil físico | El APK está compilado, pero no se ha probado en un dispositivo real |
+| Compartir/guardar el PDF en Android | Requiere probar con las apps del dispositivo |
 | App iOS | Requiere macOS/Xcode |
 | Conexión real a Firebase | No se han aportado credenciales ni proyecto |
 | Sincronización entre dispositivos | Depende de Firebase y de un proyecto real |
