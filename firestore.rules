@@ -1,0 +1,116 @@
+rules_version = '2';
+
+// Reglas de Cloud Firestore para Diario Emocional.
+//
+// Modelo: cada paciente usa una sesión anónima de Firebase Authentication y
+// solo puede leer y escribir dentro de `users/{su UID}`.
+//
+// Despliegue: firebase deploy --only firestore:rules
+// Detalles: docs/FIRESTORE.md y docs/FIREBASE_SETUP.md
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------
+    // Utilidades
+    // ---------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isNonEmptyString(value, maxLength) {
+      return value is string
+        && value.size() > 0
+        && value.size() <= maxLength;
+    }
+
+    function isOptionalString(value, maxLength) {
+      return !(value is string) || value.size() <= maxLength;
+    }
+
+    function validEmotionGroup(groupId) {
+      return groupId in [
+        'asco',
+        'ira',
+        'tristeza',
+        'miedo',
+        'sorpresa',
+        'felicidad'
+      ];
+    }
+
+    // ---------------------------------------------------------------
+    // Perfil: users/{uid}
+    // ---------------------------------------------------------------
+
+    match /users/{userId} {
+      allow read, delete: if isOwner(userId);
+
+      allow create: if isOwner(userId)
+        && request.resource.data.patientId == userId
+        && isNonEmptyString(request.resource.data.pseudonym, 80)
+        && isNonEmptyString(request.resource.data.departmentName, 120)
+        && isOptionalString(request.resource.data.privacyAcceptedAt, 40)
+        && isOptionalString(request.resource.data.createdAt, 40)
+        && isOptionalString(request.resource.data.updatedAt, 40);
+
+      allow update: if isOwner(userId)
+        && request.resource.data.patientId == userId
+        && isNonEmptyString(request.resource.data.pseudonym, 80)
+        && isNonEmptyString(request.resource.data.departmentName, 120)
+        && isOptionalString(request.resource.data.privacyAcceptedAt, 40)
+        && isOptionalString(request.resource.data.createdAt, 40)
+        && isOptionalString(request.resource.data.updatedAt, 40);
+    }
+
+    // ---------------------------------------------------------------
+    // Registros del diario: users/{uid}/records/{recordId}
+    // ---------------------------------------------------------------
+
+    match /users/{userId}/records/{recordId} {
+      allow read, delete: if isOwner(userId);
+
+      allow create, update: if isOwner(userId)
+        && request.resource.data.patientId == userId
+        && request.resource.data.id == recordId
+        && isNonEmptyString(request.resource.data.situation, 4000)
+        && isOptionalString(request.resource.data.thought, 4000)
+        && isOptionalString(request.resource.data.behavior, 4000)
+        && isOptionalString(request.resource.data.freeText, 8000)
+        && isOptionalString(request.resource.data.eventTime, 5)
+        && request.resource.data.emotions is list
+        && request.resource.data.emotions.size() <= 30
+        && request.resource.data.eventDate is timestamp
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    // ---------------------------------------------------------------
+    // Emociones propias: users/{uid}/customEmotions/{emotionId}
+    // ---------------------------------------------------------------
+
+    match /users/{userId}/customEmotions/{emotionId} {
+      allow read, delete: if isOwner(userId);
+
+      allow create, update: if isOwner(userId)
+        && request.resource.data.id == emotionId
+        && isNonEmptyString(request.resource.data.name, 60)
+        && validEmotionGroup(request.resource.data.groupId)
+        && isOptionalString(request.resource.data.description, 300)
+        && request.resource.data.isCustom == true;
+    }
+
+    // ---------------------------------------------------------------
+    // Todo lo demás queda cerrado por defecto.
+    // ---------------------------------------------------------------
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

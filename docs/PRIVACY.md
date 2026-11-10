@@ -1,0 +1,119 @@
+# Privacidad y protección de datos (RGPD)
+
+> **Aviso**: este documento es una guía técnica y una plantilla. El responsable
+> del tratamiento (el departamento de psicología) debe revisar y adaptar los
+> textos legales, el registro de actividades de tratamiento, la evaluación de
+> impacto y los contratos con encargados antes de usar la app con pacientes
+> reales.
+
+## Roles
+
+- **Responsable del tratamiento**: el departamento de psicología que facilita la
+  app y decide para qué se usan los datos.
+- **Encargado del tratamiento**: el proveedor tecnológico que aloja Firebase
+  (Google Cloud), si se activa el modo conectado. Debe existir un contrato de
+  encargo del tratamiento y una revisión de las cláusulas de Google.
+- **Persona usuaria**: el paciente, que registra sus propias emociones.
+
+## Datos tratados
+
+- Seudónimo o identificador interno.
+- Fecha y hora de los registros.
+- Situación, emociones, intensidad, pensamiento, conducta y texto libre.
+- Nombre del departamento.
+- Fechas técnicas de creación, edición y aceptación de privacidad.
+- Identificador técnico de la sesión (UID anónimo de Firebase o UUID local).
+
+**No se solicitan**: nombre real, DNI, teléfono, correo electrónico, dirección,
+geolocalización, contactos ni datos de salud de terceros.
+
+Los datos emocionales pueden considerarse datos relativos a la salud (art. 9
+RGPD) cuando permiten inferir el estado de salud de una persona. Por eso se
+aplica minimización, consentimiento explícito y acceso restringido.
+
+## Finalidad y base jurídica
+
+- Finalidad: facilitar el autorregistro emocional entre sesiones y permitir al
+  paciente compartir un informe con su psicóloga.
+- Base jurídica: consentimiento explícito de la persona usuaria (art. 6.1.a y
+  art. 9.2.a RGPD), recogido en el alta mediante una casilla no premarcada.
+- El consentimiento puede retirarse en cualquier momento; la retirada no afecta
+  a la licitud del tratamiento previo.
+
+## Almacenamiento
+
+### Modo local
+
+Los datos se guardan en `shared_preferences` del dispositivo. No se envían a
+ningún servidor. La protección depende del bloqueo y cifrado del propio
+dispositivo. Si el paciente desinstala la app o borra sus datos, se pierden.
+
+### Modo Firebase
+
+- Firebase Authentication con sesión anónima.
+- Cloud Firestore con reglas que aíslan `users/{uid}/...`.
+- Comunicación cifrada en tránsito (HTTPS/TLS) y cifrado en reposo de Google
+  Cloud.
+- No se usan Analytics, Crashlytics, publicidad ni rastreadores.
+
+## Conservación
+
+El responsable debe fijar un plazo concreto (por ejemplo, el tiempo que dure el
+acompañamiento terapéutico más el plazo legal aplicable). La app no borra datos
+automáticamente. El paciente puede eliminar registros y, en modo local, todos
+sus datos desde Configuración.
+
+En Firebase, para suprimir toda la información hay que borrar
+`users/{uid}` y sus subcolecciones (Firestore no lo hace en cascada).
+
+## Derechos de las personas
+
+El paciente puede ejercer acceso, rectificación, supresión, limitación,
+portabilidad y oposición, y retirar su consentimiento, dirigiéndose al
+departamento de psicología. También puede reclamar ante la Agencia Española de
+Protección de Datos (<https://www.aepd.es>).
+
+La app facilita el acceso y la edición, pero la atención a los derechos se
+gestiona por el canal que defina el responsable.
+
+## Seguridad
+
+- Minimización de datos y seudonimización.
+- Autenticación individual; sin cuentas compartidas.
+- Reglas de Firestore con aislamiento estricto por UID y validación de
+  `patientId`.
+- Sin credenciales ni claves en el repositorio; configuración por variables de
+  compilación.
+- PDF generado en el dispositivo; la app no lo sube a ningún servidor.
+- Recomendación: activar bloqueo de pantalla, mantener el sistema actualizado y
+  no compartir capturas con datos identificables.
+
+## Evaluación de impacto y decisiones pendientes
+
+Antes de un uso real, el responsable debería:
+
+1. Confirmar si procede una evaluación de impacto (EIPD) por tratamiento de datos
+   de salud a gran escala.
+2. Definir la base jurídica y el plazo de conservación.
+3. Revisar la información de privacidad y el consentimiento con asesoría legal.
+4. Formalizar el encargo de tratamiento con el proveedor de Firebase.
+5. Definir un protocolo de brechas de seguridad y un canal de contacto.
+6. Decidir si se permite el uso en dispositivos compartidos (la app no tiene
+   perfiles múltiples).
+7. Valorar un mecanismo de recuperación de cuenta si se necesita continuidad
+   entre dispositivos.
+
+## Riesgos conocidos
+
+- La sesión anónima se pierde si se borran los datos de la app o se cambia de
+  dispositivo; no hay recuperación.
+- En modo local no hay copia de seguridad ni sincronización.
+- Un dispositivo desbloqueado permite ver la app abierta.
+- La compartición de un PDF saca los datos del control de la app; el paciente
+  decide con quién lo comparte.
+
+## Texto para el paciente
+
+El texto completo está en `lib/core/constants/privacy_text.dart` y se muestra en
+el alta y en Configuración. Debe mantenerse sincronizado con este documento y
+con la versión `AppConfig.privacyVersion`.
