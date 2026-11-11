@@ -28,6 +28,25 @@ String formatNumericDate(DateTime date) =>
 String formatReportDate(DateTime date) =>
     DateFormat("d 'de' MMMM 'de' y", 'es').format(date);
 
+/// Ejemplo: `noviembre de 2026`.
+String formatMonthYear(DateTime date) =>
+    DateFormat("MMMM 'de' y", 'es').format(date);
+
+/// Ejemplo: `10 nov`.
+String formatDayMonth(DateTime date) => DateFormat('d MMM', 'es').format(date);
+
+/// Ejemplo: `3 – 9 nov 2026` o `27 oct – 2 nov 2026`.
+String formatWeekRange(DateTime start, DateTime end) {
+  if (start.year == end.year && start.month == end.month) {
+    return '${start.day} – ${end.day} ${DateFormat('MMM y', 'es').format(end)}';
+  }
+  if (start.year == end.year) {
+    return '${DateFormat('d MMM', 'es').format(start)} – '
+        '${DateFormat('d MMM y', 'es').format(end)}';
+  }
+  return '${formatShortDate(start)} – ${formatShortDate(end)}';
+}
+
 /// Ejemplo: `14:35`.
 String formatTime(DateTime date) => DateFormat('HH:mm').format(date);
 

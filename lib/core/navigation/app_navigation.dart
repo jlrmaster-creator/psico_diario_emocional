@@ -9,6 +9,8 @@ import '../../features/diary/record_form_screen.dart';
 import '../../features/emotions/emotion_group_screen.dart';
 import '../../features/emotions/emotions_screen.dart';
 import '../../features/home/home_screen.dart';
+import '../../features/insights/insights_screen.dart';
+import '../../features/insights/summary_screen.dart';
 import '../../features/reports/reports_screen.dart';
 import '../../features/settings/settings_screen.dart';
 
@@ -37,6 +39,12 @@ class AppNavigation {
 
   static Future<void> openReports(BuildContext context) =>
       push(context, const ReportsScreen());
+
+  static Future<void> openInsights(BuildContext context) =>
+      push(context, const InsightsScreen());
+
+  static Future<void> openSummary(BuildContext context) =>
+      push(context, const SummaryScreen());
 
   static Future<void> openSettings(BuildContext context) =>
       push(context, const SettingsScreen());

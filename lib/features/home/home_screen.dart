@@ -104,6 +104,8 @@ class HomeScreen extends ConsumerWidget {
                 onNewRecord: () => AppNavigation.openRecordForm(context),
                 onDiary: () => AppNavigation.openDiary(context),
                 onReports: () => AppNavigation.openReports(context),
+                onInsights: () => AppNavigation.openInsights(context),
+                onSummary: () => AppNavigation.openSummary(context),
               ),
               const SizedBox(height: 26),
               SectionHeader(
@@ -308,12 +310,16 @@ class _QuickActionsGrid extends StatelessWidget {
     required this.onNewRecord,
     required this.onDiary,
     required this.onReports,
+    required this.onInsights,
+    required this.onSummary,
   });
 
   final VoidCallback onEmotions;
   final VoidCallback onNewRecord;
   final VoidCallback onDiary;
   final VoidCallback onReports;
+  final VoidCallback onInsights;
+  final VoidCallback onSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -345,6 +351,20 @@ class _QuickActionsGrid extends StatelessWidget {
         subtitle: 'Comparte un día',
         color: const Color(0xFF7D74A8),
         onTap: onReports,
+      ),
+      _QuickAction(
+        icon: Icons.insights_rounded,
+        title: 'Estadísticas',
+        subtitle: 'Emociones y semanas',
+        color: const Color(0xFF4F7C8A),
+        onTap: onInsights,
+      ),
+      _QuickAction(
+        icon: Icons.summarize_rounded,
+        title: 'Resumen',
+        subtitle: 'Qué ha cambiado',
+        color: const Color(0xFFB08968),
+        onTap: onSummary,
       ),
     ];
 

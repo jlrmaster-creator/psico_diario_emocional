@@ -84,6 +84,15 @@ class RecordDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  current.displayTitle,
+                  style: const TextStyle(
+                    fontSize: 19,
+                    height: 1.25,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     const Icon(
@@ -146,6 +155,13 @@ class RecordDetailScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+          _DetailSection(
+            icon: Icons.title_rounded,
+            title: 'Título',
+            subtitle: 'Resumen del registro',
+            content: current.displayTitle,
+          ),
+          const SizedBox(height: 12),
           _DetailSection(
             icon: Icons.place_outlined,
             title: 'Situación',

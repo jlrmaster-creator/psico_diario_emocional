@@ -7,10 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 
 import '../../core/theme/app_theme.dart';
-import '../../core/theme/emotion_style.dart';
 import '../../core/utils/date_utils.dart';
 import '../../data/services/pdf_report_service.dart';
-import '../../models/emotion_group.dart';
 import '../../models/emotional_record.dart';
 import '../../state/providers.dart';
 import '../../widgets/common_widgets.dart';
@@ -165,7 +163,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   Widget build(BuildContext context) {
     final recordsAsync = ref.watch(recordsProvider);
     final profile = ref.watch(profileProvider).value;
-    final catalog = ref.watch(catalogProvider).value;
     final department = profile?.departmentName ?? 'Departamento de Psicología';
     final pseudonym = profile?.pseudonym ?? 'Paciente';
 
@@ -300,7 +297,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               for (final record in dayRecords)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: _ReportRecordRow(record: record, catalog: catalog),
+                  child: _ReportRecordRow(record: record),
                 ),
               const SizedBox(height: 14),
             ],
@@ -349,10 +346,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 }
 
 class _ReportRecordRow extends StatelessWidget {
-  const _ReportRecordRow({required this.record, required this.catalog});
+  const _ReportRecordRow({required this.record});
 
   final EmotionalRecord record;
-  final EmotionCatalog? catalog;
 
   @override
   Widget build(BuildContext context) {
@@ -377,38 +373,11 @@ class _ReportRecordRow extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  record.situation,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: record.emotions
-                      .map(
-                        (emotion) => Text(
-                          emotion.name,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: EmotionStyle.colorFromHex(
-                              catalog?.groupById(emotion.groupId)?.colorHex ??
-                                  '#5F8575',
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(growable: false),
-                ),
-              ],
+            child: Text(
+              record.displayTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],

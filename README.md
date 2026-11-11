@@ -14,7 +14,7 @@ Firebase desplegados.**
 | Comprobación | Resultado |
 | --- | --- |
 | `flutter analyze` | Sin errores ni advertencias |
-| `flutter test` | 40 pruebas superadas |
+| `flutter test` | 64 pruebas superadas |
 | Compilación Android | APK **debug** y **release** generados con Android SDK 36 (ver [docs/TESTING.md](docs/TESTING.md)) |
 | Instalación en móvil | Verificada en un Xiaomi con MIUI/HyperOS; QA manual en curso (ver [docs/TESTING.md](docs/TESTING.md#instalación-en-xiaomi-miui-hyperos)) |
 | Firebase | Integración preparada con acceso por correo y contraseña; sin credenciales, la app arranca en modo local |
@@ -29,12 +29,20 @@ Firebase desplegados.**
   felicidad), descripciones y búsqueda sin distinción de mayúsculas ni tildes.
 - **Emociones propias**: el paciente puede crear y eliminar palabras que no
   encuentre en el catálogo.
-- **Diario emocional**: situación, varias emociones por registro, intensidad
-  opcional de 0 a 10 para cada emoción, pensamiento, conducta y texto libre.
+- **Diario emocional**: título breve, situación, varias emociones por registro,
+  intensidad opcional de 0 a 10 para cada emoción, pensamiento, conducta y texto
+  libre.
+- **Varias emociones del mismo grupo**, por ejemplo Alegría y Orgullo, cada una
+  con su propia intensidad.
 - **Varios registros por día**, con fecha y hora opcional del acontecimiento.
 - **CRUD completo** de registros: crear, consultar, editar y eliminar.
 - **Historial** agrupado por día y filtros combinables por fecha, intervalo,
-  grupo emocional y emoción concreta.
+  grupo emocional y emoción concreta. En la lista solo se muestra el título; el
+  resto del contenido se ve al abrir el registro.
+- **Estadísticas personales**: emociones más frecuentes, intensidad media de las
+  últimas ocho semanas y calendario tipo mapa de calor. Sin rachas ni juicios.
+- **Resumen semanal o mensual** con lo que ha cambiado respecto al periodo
+  anterior, en texto claro y sin valoraciones.
 - **Informe PDF diario** en A4 con cabecera, todos los registros del día, texto
   largo, acentos, numeración de páginas, nota de privacidad y pie con la fecha
   de generación. Vista previa, guardado en el dispositivo y compartición.

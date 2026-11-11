@@ -33,6 +33,7 @@ class RecordFormScreen extends ConsumerStatefulWidget {
 
 class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
   final _situationController = TextEditingController();
   final _thoughtController = TextEditingController();
   final _behaviorController = TextEditingController();
@@ -53,6 +54,7 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
     final record = widget.record;
     _eventDate = dateOnly(record?.eventDate ?? DateTime.now());
     _eventTime = record?.eventTime;
+    _titleController.text = record?.displayTitle ?? '';
     _situationController.text = record?.situation ?? '';
     _thoughtController.text = record?.thought ?? '';
     _behaviorController.text = record?.behavior ?? '';
@@ -82,6 +84,7 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
 
   @override
   void dispose() {
+    _titleController.dispose();
     _situationController.dispose();
     _thoughtController.dispose();
     _behaviorController.dispose();
@@ -185,7 +188,8 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
   }
 
   bool get _hasContent {
-    return _situationController.text.trim().isNotEmpty ||
+    return _titleController.text.trim().isNotEmpty ||
+        _situationController.text.trim().isNotEmpty ||
         _thoughtController.text.trim().isNotEmpty ||
         _behaviorController.text.trim().isNotEmpty ||
         _freeTextController.text.trim().isNotEmpty ||
@@ -225,6 +229,7 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
         patientId: session.patientId,
         eventDate: _eventDate,
         createdAt: existing?.createdAt ?? DateTime.now(),
+        title: _titleController.text,
         situation: _situationController.text,
         emotions: _selected,
         thought: _thoughtController.text,
@@ -302,6 +307,25 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
             ),
             const SizedBox(height: 14),
             _FormSection(
+              title: 'Título *',
+              subtitle: 'Un resumen breve para reconocerlo en el historial.',
+              child: TextFormField(
+                controller: _titleController,
+                maxLength: 80,
+                textCapitalization: TextCapitalization.sentences,
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  hintText: 'Ej.: Conversación con mi amiga',
+                ),
+                validator: (value) => Validators.requiredText(
+                  value,
+                  fieldName: 'El título',
+                  maxLength: 80,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            _FormSection(
               title: 'Situación *',
               subtitle: '¿Qué ha ocurrido? Describe el contexto.',
               child: TextFormField(
@@ -325,7 +349,7 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
             const SizedBox(height: 14),
             _FormSection(
               title: 'Emociones *',
-              subtitle: 'Puedes elegir varias. Después puedes indicar la intensidad de cada una.',
+              subtitle: 'Puedes elegir varias, incluso del mismo grupo. Después puedes indicar la intensidad de cada una.',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

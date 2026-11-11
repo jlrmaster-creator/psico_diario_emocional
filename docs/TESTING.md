@@ -35,16 +35,19 @@ C:\tools\flutter\bin\flutter.bat test
 | --- | --- |
 | `flutter pub get` | Dependencias resueltas correctamente |
 | `flutter analyze` | `No issues found!` |
-| `flutter test` | `All tests passed!` (40 pruebas) |
+| `flutter test` | `All tests passed!` (64 pruebas) |
 
 ### Cobertura de las pruebas
 
 | Archivo | Qué comprueba |
 | --- | --- |
-| `test/models/emotional_record_test.dart` | Serialización completa, intensidad máxima, `copyWith`, límite 0–10 y combinación de filtros por fecha, grupo y emoción |
+| `test/models/emotional_record_test.dart` | Serialización completa (incluido el título), intensidad máxima, `copyWith`, límite 0–10, combinación de filtros y títulos automáticos para registros antiguos |
 | `test/data/emotion_catalog_test.dart` | Los seis grupos del catálogo, identificadores únicos, búsqueda sin tildes ni mayúsculas, emociones propias y catálogo vacío |
 | `test/data/local_repositories_test.dart` | CRUD local de registros, orden descendente, aislamiento por paciente, filtros al leer, perfil y emociones propias, recuperación ante JSON corrupto |
 | `test/services/pdf_report_service_test.dart` | Generación real de un PDF (`%PDF`), informe de un día sin registros, orden por hora, nombre del archivo y filtrado por día |
+| `test/services/insights_service_test.dart` | Frecuencia de emociones, intensidad media, semanas, mapa de calor, comparación de periodos y textos neutros del resumen |
+| `test/features/emotion_picker_sheet_test.dart` | Selección de varias emociones del mismo grupo (Alegría y Orgullo) y recuento de elegidas |
+| `test/features/record_card_test.dart` | La tarjeta del historial muestra el título y no la situación, el pensamiento ni la conducta; los registros antiguos reciben un título automático |
 | `test/widget_test.dart` | El alta aparece sin perfil, el modo local se indica de forma visible y no se puede continuar sin aceptar la privacidad |
 | `test/services/auth_service_test.dart` | Traducción de errores de Firebase Auth, validación de correo y contraseña |
 | `test/features/auth_screen_test.dart` | Inicio de sesión, registro, contraseñas distintas, error de acceso y envío de recuperación |
@@ -65,7 +68,7 @@ faltantes.
 | Variante | Comando | Archivo | Tamaño | Resultado |
 | --- | --- | --- | --- | --- |
 | Debug | `flutter build apk --debug` | `build/app/outputs/flutter-apk/app-debug.apk` | 181.766.843 bytes (181,8 MB) | `√ Built` |
-| Release con Firebase y acceso | `flutter build apk --release --dart-define-from-file=dart_defines.json` | `build/app/outputs/flutter-apk/app-release.apk` | 67.066.460 bytes (64,0 MB) | `√ Built` |
+| Release con Firebase, títulos y estadísticas | `flutter build apk --release --dart-define-from-file=dart_defines.json` | `build/app/outputs/flutter-apk/app-release.apk` | 67.312.984 bytes (64,2 MB) | `√ Built` |
 
 Verificación con `aapt dump badging`:
 
@@ -80,8 +83,9 @@ El APK release está firmado con el certificado **Android Debug**
 (`CN=Android Debug`), tal y como indica `apksigner verify --print-certs`. Es
 instalable y válido para pruebas, pero no para publicar en Google Play.
 
-La compilación release con acceso por correo y contraseña se copió además al
-escritorio como `DiarioEmocional-1.0.0-auth-release.apk` para instalarla en el
+La compilación release con acceso por correo y contraseña, títulos de registro,
+estadísticas y resumen se copió además al escritorio como
+`DiarioEmocional-1.0.0-titulo-estadisticas-release.apk` para instalarla en el
 móvil. Requiere que el proyecto de Firebase tenga habilitado el proveedor
 **Correo electrónico/Contraseña** y Cloud Firestore creado.
 
@@ -193,10 +197,10 @@ app. Marca solo lo que hayas verificado.
 
 ### Registros
 
-- [ ] Se puede crear un registro con situación, al menos una emoción,
+- [ ] Se puede crear un registro con título, situación, al menos una emoción,
       pensamiento y conducta.
-- [ ] Se pueden seleccionar varias emociones y asignar intensidad 0–10 a cada
-      una.
+- [ ] Se pueden seleccionar varias emociones del mismo grupo (por ejemplo,
+      Alegría y Orgullo) y asignar intensidad 0–10 a cada una.
 - [ ] La intensidad es opcional y se puede quitar.
 - [ ] Se puede añadir hora del acontecimiento y texto libre.
 - [ ] Se pueden crear **varios registros el mismo día**.
@@ -207,6 +211,10 @@ app. Marca solo lo que hayas verificado.
 ### Historial y filtros
 
 - [ ] El historial agrupa los registros por día, del más reciente al más antiguo.
+- [ ] En el historial solo se ve el título de cada registro; el detalle aparece
+      al abrir la tarjeta.
+- [ ] Los registros creados antes de existir el título muestran un título
+      automático legible.
 - [ ] El filtro por día concreto funciona.
 - [ ] El filtro por intervalo de fechas funciona, incluidos los extremos.
 - [ ] El filtro por grupo emocional funciona.
@@ -215,6 +223,15 @@ app. Marca solo lo que hayas verificado.
 - [ ] Los atajos de rango (hoy, últimos 7 días, etc.) seleccionan el rango
       correcto y se resaltan.
 - [ ] Sin resultados se muestra un estado vacío claro.
+
+### Estadísticas y resumen
+
+- [ ] Estadísticas muestra las emociones más frecuentes.
+- [ ] La intensidad media por semana se ve en las últimas ocho semanas.
+- [ ] El mapa de calor cambia de mes y al tocar un día abre el historial filtrado.
+- [ ] El resumen permite alternar entre semana y mes y navegar al periodo anterior.
+- [ ] Los textos del resumen describen cambios sin usar "mejor" ni "peor".
+- [ ] Sin registros se muestra un estado vacío claro y sin presión.
 
 ### Informe PDF
 

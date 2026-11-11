@@ -13,6 +13,7 @@ void main() {
       eventDate: DateTime(2026, 11, 10),
       createdAt: createdAt,
       updatedAt: createdAt,
+      title: 'Conversación difícil',
       situation: 'Una conversación difícil',
       emotions: const [
         SelectedEmotion(
@@ -45,6 +46,7 @@ void main() {
     expect(restored.eventDate, record.eventDate);
     expect(restored.createdAt, record.createdAt);
     expect(restored.updatedAt, record.updatedAt);
+    expect(restored.title, 'Conversación difícil');
     expect(restored.situation, record.situation);
     expect(restored.thought, record.thought);
     expect(restored.behavior, record.behavior);
@@ -72,13 +74,66 @@ void main() {
     final cleared = record.copyWith(
       clearEventTime: true,
       clearFreeText: true,
+      title: 'Otro título',
       situation: 'Otra situación',
     );
 
     expect(cleared.eventTime, isNull);
     expect(cleared.freeText, isNull);
+    expect(cleared.title, 'Otro título');
+    expect(cleared.displayTitle, 'Otro título');
     expect(cleared.situation, 'Otra situación');
     expect(cleared.id, record.id);
+  });
+
+  test('displayTitle inventa un título para registros antiguos', () {
+    final legacy = buildSample().copyWith(
+      title: '',
+      situation: '  Una tarde tranquila en casa. Después salí a caminar.  ',
+    );
+
+    expect(legacy.displayTitle, 'Una tarde tranquila en casa');
+  });
+
+  test('displayTitle usa las emociones si no hay texto', () {
+    final legacy = EmotionalRecord(
+      id: 'legacy',
+      patientId: 'patient-1',
+      eventDate: DateTime(2026, 11, 10),
+      createdAt: createdAt,
+      updatedAt: createdAt,
+      situation: '',
+      emotions: const [
+        SelectedEmotion(
+          emotionId: 'felicidad_alegria',
+          name: 'Alegría',
+          groupId: 'felicidad',
+          groupName: 'Felicidad',
+        ),
+        SelectedEmotion(
+          emotionId: 'felicidad_orgullo',
+          name: 'Orgullo',
+          groupId: 'felicidad',
+          groupName: 'Felicidad',
+        ),
+      ],
+      thought: '',
+      behavior: '',
+    );
+
+    expect(legacy.displayTitle, 'Alegría y Orgullo');
+  });
+
+  test('displayTitle acorta los títulos derivados demasiado largos', () {
+    final legacy = buildSample().copyWith(
+      title: '',
+      situation:
+          'Una situación muy larga que no cabe en una tarjeta del historial '
+          'y que necesita recortarse para mantener la lista legible.',
+    );
+
+    expect(legacy.displayTitle.length, lessThanOrEqualTo(61));
+    expect(legacy.displayTitle.endsWith('…'), isTrue);
   });
 
   test('la intensidad se limita al rango 0-10 al deserializar', () {

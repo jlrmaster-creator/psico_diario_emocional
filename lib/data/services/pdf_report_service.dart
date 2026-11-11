@@ -282,6 +282,8 @@ class PdfReportService {
         ],
       ),
       pw.SizedBox(height: 6),
+      _field('Título', record.displayTitle),
+      pw.SizedBox(height: 6),
       _field('Situación', record.situation),
       pw.SizedBox(height: 6),
       _emotionsField(record),

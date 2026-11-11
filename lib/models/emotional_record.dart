@@ -4,6 +4,8 @@ import 'selected_emotion.dart';
 ///
 /// Los campos `situation`, `thought` y `behavior` son obligatorios en la
 /// interfaz; el modelo los acepta vacíos para poder migrar datos antiguos.
+/// `title` se añadió después: los registros anteriores lo leen vacío y generan
+/// un título automático a partir de su contenido.
 class EmotionalRecord {
   const EmotionalRecord({
     required this.id,
@@ -15,6 +17,7 @@ class EmotionalRecord {
     required this.emotions,
     required this.thought,
     required this.behavior,
+    this.title = '',
     this.freeText,
     this.eventTime,
     this.schemaVersion = 1,
@@ -32,10 +35,49 @@ class EmotionalRecord {
   /// Momento de la última modificación.
   final DateTime updatedAt;
 
+  /// Título breve que resume el registro.
+  final String title;
+
   final String situation;
   final List<SelectedEmotion> emotions;
   final String thought;
   final String behavior;
+
+  /// Título visible en listados y detalles.
+  ///
+  /// Si el registro es anterior a la incorporación del título, se genera uno
+  /// breve a partir de la situación, el pensamiento o las emociones para que
+  /// las tarjetas antiguas no queden vacías.
+  String get displayTitle {
+    final own = title.trim();
+    if (own.isNotEmpty) return own;
+
+    for (final source in [situation, thought, behavior, freeText ?? '']) {
+      final text = source.trim();
+      if (text.isEmpty) continue;
+      final firstSentence = text
+          .split(RegExp(r'[.\n!?]'))
+          .map((part) => part.trim())
+          .firstWhere((part) => part.isNotEmpty, orElse: () => text);
+      return _shortTitle(firstSentence);
+    }
+
+    if (emotions.isNotEmpty) {
+      final names = emotions.map((emotion) => emotion.name).take(2).join(' y ');
+      return names;
+    }
+
+    return 'Registro sin título';
+  }
+
+  static String _shortTitle(String text) {
+    final normalized = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.length <= 60) return normalized;
+    final cut = normalized.substring(0, 60);
+    final lastSpace = cut.lastIndexOf(' ');
+    final base = lastSpace > 20 ? cut.substring(0, lastSpace) : cut;
+    return '${base.trimRight()}…';
+  }
 
   /// Texto libre: "¿cómo lo describirías con tus propias palabras?".
   final String? freeText;
@@ -77,6 +119,7 @@ class EmotionalRecord {
     DateTime? eventDate,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? title,
     String? situation,
     List<SelectedEmotion>? emotions,
     String? thought,
@@ -92,6 +135,7 @@ class EmotionalRecord {
       eventDate: eventDate ?? this.eventDate,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      title: title ?? this.title,
       situation: situation ?? this.situation,
       emotions: emotions ?? this.emotions,
       thought: thought ?? this.thought,
@@ -114,6 +158,7 @@ class EmotionalRecord {
       eventDate: _parseDate(json['eventDate']) ?? DateTime.now(),
       createdAt: _parseDate(json['createdAt']) ?? DateTime.now(),
       updatedAt: _parseDate(json['updatedAt']) ?? DateTime.now(),
+      title: json['title'] as String? ?? '',
       situation: json['situation'] as String? ?? '',
       emotions: rawEmotions,
       thought: json['thought'] as String? ?? '',
@@ -130,6 +175,7 @@ class EmotionalRecord {
     'eventDate': eventDate.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
+    'title': title,
     'situation': situation,
     'emotions': emotions.map((emotion) => emotion.toJson()).toList(),
     'thought': thought,

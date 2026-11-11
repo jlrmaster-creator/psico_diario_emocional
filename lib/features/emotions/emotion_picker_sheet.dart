@@ -195,11 +195,17 @@ class _EmotionPickerSheetState extends ConsumerState<EmotionPickerSheet> {
             ],
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
           child: Text(
-            'Puedes elegir más de una. Después podrás indicar la intensidad de cada una.',
-            style: TextStyle(
+            _selectedIds.isEmpty
+                ? 'Puedes elegir varias emociones, incluso del mismo grupo '
+                      '(por ejemplo, Alegría y Orgullo). Después podrás '
+                      'indicar la intensidad de cada una.'
+                : '${_selectedIds.length} '
+                      '${_selectedIds.length == 1 ? 'emoción elegida' : 'emociones elegidas'}. '
+                      'Puedes combinar varias del mismo grupo.',
+            style: const TextStyle(
               fontSize: 12.5,
               color: AppTheme.textSecondary,
               height: 1.4,
@@ -270,6 +276,9 @@ class _EmotionPickerSheetState extends ConsumerState<EmotionPickerSheet> {
                     final color = EmotionStyle.colorFromHex(
                       section.group.colorHex,
                     );
+                    final selectedInGroup = section.emotions
+                        .where((emotion) => _selectedIds.contains(emotion.id))
+                        .length;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -286,15 +295,27 @@ class _EmotionPickerSheetState extends ConsumerState<EmotionPickerSheet> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                section.group.name.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 10.5,
-                                  letterSpacing: 0.8,
-                                  fontWeight: FontWeight.w700,
-                                  color: color,
+                              Expanded(
+                                child: Text(
+                                  section.group.name.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    letterSpacing: 0.8,
+                                    fontWeight: FontWeight.w700,
+                                    color: color,
+                                  ),
                                 ),
                               ),
+                              if (selectedInGroup > 0)
+                                Text(
+                                  '$selectedInGroup '
+                                  '${selectedInGroup == 1 ? 'elegida' : 'elegidas'}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: color,
+                                  ),
+                                ),
                             ],
                           ),
                         ),

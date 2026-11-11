@@ -71,8 +71,10 @@ legible sin pasos de build adicionales.
 - `SelectedEmotion`: copia del nombre y grupo en el momento del registro, más la
   intensidad opcional. Así un registro histórico sigue siendo legible aunque el
   catálogo cambie.
-- `EmotionalRecord`: situación, emociones, pensamiento, conducta, texto libre,
-  fecha del acontecimiento, hora opcional y marcas de creación/edición.
+- `EmotionalRecord`: título breve, situación, emociones, pensamiento, conducta,
+  texto libre, fecha del acontecimiento, hora opcional y marcas de
+  creación/edición. Los registros anteriores al título generan uno automático a
+  partir de su contenido (`displayTitle`).
 - `RecordFilter`: combina rango de fechas, grupo y emoción.
 - `PatientProfile`: seudónimo, departamento, fechas técnicas y aceptación de
   privacidad.
@@ -104,12 +106,27 @@ Las fechas se guardan como `Timestamp` en Firestore y se normalizan a
 `DateTime` en el repositorio. Los filtros se aplican en el cliente para evitar
 índices compuestos y mantener el historial disponible sin conexión.
 
+## Estadísticas y resumen
+
+`lib/core/services/insights_service.dart` calcula todo en el dispositivo a
+partir de los registros, sin dependencias nuevas ni envío de datos:
+
+- frecuencia de emociones y grupos;
+- intensidad media por semana (últimas ocho);
+- registros por día para el mapa de calor;
+- agregados y comparación entre un periodo y el anterior;
+- textos neutros del resumen, sin valoraciones ni rachas.
+
+Las pantallas `InsightsScreen` y `SummaryScreen` solo presentan esos cálculos.
+Tocar un día del mapa de calor aplica un `RecordFilter` de ese día y abre el
+historial.
+
 ## PDF
 
 `PdfReportService` usa `pdf` y `printing`. Genera un A4 con `MultiPage`:
 
 - cabecera con departamento, paciente, fecha y número de registros;
-- todos los registros del día ordenados por hora;
+- todos los registros del día ordenados por hora, con su título;
 - emociones con intensidad y textos largos;
 - pie con nota de privacidad y `Página X de Y`;
 - tipografía **Noto Sans** incluida en `assets/fonts` para acentos y símbolos.
