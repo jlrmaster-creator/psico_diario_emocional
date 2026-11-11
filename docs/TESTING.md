@@ -112,9 +112,29 @@ Pasos para reproducirlo en otra máquina:
 Si `flutter build apk` falla por versión de Java o de Gradle, revisa
 `android/gradle/wrapper/gradle-wrapper.properties` (Gradle 9.3.1) y usa Java 17.
 
-**Pendiente**: instalar el APK en un dispositivo Android físico y recorrer la
-lista de comprobación manual de la sección 4. La compilación está verificada;
-la ejecución en un móvil real, todavía no.
+**Instalación verificada** el 2026-11-11 en un Xiaomi con MIUI/HyperOS. El
+instalador mostraba "Aplicación no instalada" hasta desactivar la
+**Optimización MIUI** (ver la sección siguiente). Queda pendiente recorrer la
+lista de comprobación manual de la sección 4.
+
+### Instalación en Xiaomi (MIUI/HyperOS)
+
+Si al abrir el APK el móvil responde **"Aplicación no instalada"** sin más
+detalle, prueba en este orden:
+
+1. Desinstala cualquier versión previa en **Ajustes → Apps → Gestionar apps**.
+2. Concede el permiso a la app concreta con la que abres el archivo:
+   **Ajustes → Privacidad y seguridad → Permisos especiales → Instalar apps
+   desconocidas** → Archivos/Chrome/Telegram.
+3. Desactiva la **Optimización MIUI**: activa Opciones de desarrollador
+   (toca 7 veces "Versión de MIUI/HyperOS"), entra en **Ajustes adicionales →
+   Opciones de desarrollador**, desactiva **Optimización MIUI** y reinicia.
+   Este fue el paso que resolvió el problema en la prueba real.
+4. Desactiva temporalmente **Play Protect** y comprueba que hay ~300 MB libres.
+
+El mensaje es genérico: si nada funciona, conecta el móvil con Depuración USB
+(además de "Instalar vía USB" en Xiaomi) y ejecuta `adb install -r app-release.apk`
+para obtener el código `INSTALL_FAILED_*` exacto.
 
 ### iOS
 
@@ -274,7 +294,7 @@ en `.gitignore`.
 
 | Elemento | Motivo |
 | --- | --- |
-| Instalación y uso en un móvil físico | El APK está compilado, pero no se ha probado en un dispositivo real |
+| Recorrido completo de la lista de QA en el móvil | El APK ya está instalado en un Xiaomi, pero faltan las pruebas manuales de la sección 4 |
 | Compartir/guardar el PDF en Android | Requiere probar con las apps del dispositivo |
 | App iOS | Requiere macOS/Xcode |
 | Conexión real a Firebase | No se han aportado credenciales ni proyecto |

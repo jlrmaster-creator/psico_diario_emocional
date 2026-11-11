@@ -16,7 +16,7 @@ Firebase desplegados.**
 | `flutter analyze` | Sin errores ni advertencias |
 | `flutter test` | 25 pruebas superadas |
 | Compilación Android | APK **debug** y **release** generados con Android SDK 36 (ver [docs/TESTING.md](docs/TESTING.md)) |
-| Instalación en móvil | Pendiente de probar en un dispositivo físico |
+| Instalación en móvil | Verificada en un Xiaomi con MIUI/HyperOS; QA manual en curso (ver [docs/TESTING.md](docs/TESTING.md#instalación-en-xiaomi-miui-hyperos)) |
 | Firebase | Integración preparada; sin credenciales, la app arranca en modo local |
 | iOS | Proyecto generado; requiere macOS/Xcode para compilar |
 
