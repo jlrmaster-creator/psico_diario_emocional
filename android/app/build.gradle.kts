@@ -29,6 +29,16 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Firma de depuración con v2 y v3. Algunos instaladores OEM
+        // (MIUI/HyperOS) rechazan APK firmados solo con v2. v1 no aplica
+        // porque minSdk es 24 (Android 7.0), que ya soporta v2.
+        getByName("debug") {
+            enableV2Signing = true
+            enableV3Signing = true
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
