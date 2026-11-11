@@ -26,7 +26,14 @@ void main() {
   Future<void> pumpApp(WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [appSessionProvider.overrideWithValue(localSession())],
+        overrides: [
+          firebaseRuntimeProvider.overrideWithValue(
+            const AsyncData(
+              FirebaseRuntime.local(patientId: 'local_test_patient'),
+            ),
+          ),
+          appSessionProvider.overrideWithValue(localSession()),
+        ],
         child: const PsicoApp(),
       ),
     );

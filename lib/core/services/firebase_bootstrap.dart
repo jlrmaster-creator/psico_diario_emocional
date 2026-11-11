@@ -1,8 +1,41 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import '../config/app_config.dart';
 import 'local_identity.dart';
+
+/// Modo de funcionamiento de la aplicación.
+enum FirebaseMode { local, firebase, error }
+
+/// Resultado de la inicialización de Firebase.
+class FirebaseRuntime {
+  const FirebaseRuntime._({
+    required this.mode,
+    this.localPatientId,
+    this.projectId,
+    this.message,
+  });
+
+  const FirebaseRuntime.local({required String patientId})
+    : this._(mode: FirebaseMode.local, localPatientId: patientId);
+
+  const FirebaseRuntime.firebase({required String projectId})
+    : this._(mode: FirebaseMode.firebase, projectId: projectId);
+
+  const FirebaseRuntime.error(String message)
+    : this._(mode: FirebaseMode.error, message: message);
+
+  final FirebaseMode mode;
+
+  /// Identificador aleatorio usado cuando no hay Firebase configurado.
+  final String? localPatientId;
+
+  final String? projectId;
+
+  /// Motivo legible cuando la inicialización falla.
+  final String? message;
+
+  bool get isFirebase => mode == FirebaseMode.firebase;
+}
 
 /// Estado de la conexión con Firebase.
 class FirebaseStatus {
@@ -19,7 +52,7 @@ class FirebaseStatus {
   const FirebaseStatus.local({String? message})
     : this._(enabled: false, isLocalFallback: true, message: message);
 
-  /// `true` solo si Firebase está inicializado y hay sesión de autenticación.
+  /// `true` solo si Firebase está inicializado y hay sesión iniciada.
   final bool enabled;
 
   /// `true` si la app está usando almacenamiento local en este dispositivo.
@@ -36,77 +69,45 @@ class AppSession {
   const AppSession({
     required this.patientId,
     required this.firebaseStatus,
-    this.isAnonymous = true,
+    this.email,
   });
 
   final String patientId;
   final FirebaseStatus firebaseStatus;
-  final bool isAnonymous;
+
+  /// Correo de la cuenta autenticada. `null` en modo local.
+  final String? email;
 
   bool get isFirebaseEnabled => firebaseStatus.enabled;
 }
 
-/// Inicializa Firebase si hay configuración y crea una sesión.
+/// Inicializa Firebase si hay configuración válida.
 ///
-/// Reglas de seguridad del proyecto:
-/// - Nunca se simula una conexión: si falla la inicialización o la
-///   autenticación, la app pasa a modo local y lo indica claramente.
-/// - Se usa autenticación anónima para no solicitar datos personales.
+/// No crea sesiones de forma automática: con Firebase configurado, la app
+/// exige iniciar sesión con correo y contraseña. Si no hay configuración,
+/// funciona en modo local y lo indica claramente en la interfaz.
 class FirebaseBootstrap {
   FirebaseBootstrap._();
 
-  static Future<AppSession> initialize() async {
+  static Future<FirebaseRuntime> initialize() async {
     if (!AppConfig.hasFirebaseConfig) {
-      final id = await LocalIdentity.patientId();
-      return AppSession(
-        patientId: id,
-        firebaseStatus: const FirebaseStatus.local(
-          message:
-              'Firebase no está configurado en esta compilación. '
-              'Los datos se guardan únicamente en este dispositivo.',
-        ),
-      );
+      return FirebaseRuntime.local(patientId: await LocalIdentity.patientId());
     }
 
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(options: AppConfig.firebaseOptions);
       }
-
-      final auth = FirebaseAuth.instance;
-      var user = auth.currentUser;
-      user ??= (await auth.signInAnonymously()).user;
-
-      if (user == null) {
-        throw StateError('No se pudo crear la sesión anónima.');
-      }
-
-      return AppSession(
-        patientId: user.uid,
-        firebaseStatus: FirebaseStatus.connected(
-          projectId: AppConfig.projectId,
-        ),
-      );
+      return FirebaseRuntime.firebase(projectId: AppConfig.projectId);
     } catch (error) {
-      final id = await LocalIdentity.patientId();
-      return AppSession(
-        patientId: id,
-        firebaseStatus: FirebaseStatus.local(
-          message:
-              'No se pudo conectar con Firebase (${_friendlyError(error)}). '
-              'Se está usando el almacenamiento local de este dispositivo.',
-        ),
-      );
+      return FirebaseRuntime.error(_friendlyError(error));
     }
   }
 
   static String _friendlyError(Object error) {
-    if (error is FirebaseAuthException) {
-      return 'autenticación: ${error.code}';
-    }
     if (error is FirebaseException) {
       return '${error.plugin}: ${error.code}';
     }
-    return 'error de conexión';
+    return 'No se pudo inicializar Firebase.';
   }
 }

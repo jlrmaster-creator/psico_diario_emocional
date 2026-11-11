@@ -42,4 +42,29 @@ class Validators {
     if (text.length > 40) return 'No puede superar los 40 caracteres.';
     return null;
   }
+
+  /// Valida el correo usado para iniciar sesión.
+  static String? email(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return 'Escribe tu correo electrónico.';
+    if (text.length > 254) return 'El correo es demasiado largo.';
+    final pattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (!pattern.hasMatch(text)) {
+      return 'Escribe un correo válido (ej.: nombre@ejemplo.com).';
+    }
+    return null;
+  }
+
+  /// Valida la contraseña de la cuenta.
+  static String? password(String? value) {
+    final text = value ?? '';
+    if (text.isEmpty) return 'Escribe tu contraseña.';
+    if (text.length < 8) {
+      return 'La contraseña debe tener al menos 8 caracteres.';
+    }
+    if (text.length > 128) {
+      return 'La contraseña no puede superar los 128 caracteres.';
+    }
+    return null;
+  }
 }

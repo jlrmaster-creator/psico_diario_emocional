@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/config/app_config.dart';
+import '../core/services/auth_service.dart';
 import '../core/services/firebase_bootstrap.dart';
 import '../data/repositories/emotion_catalog_repository.dart';
 import '../data/repositories/emotional_record_repository.dart';
@@ -23,9 +25,59 @@ import '../models/patient_profile.dart';
 import '../models/record_filter.dart';
 import '../models/selected_emotion.dart';
 
-/// Sesión creada durante el arranque de la aplicación.
+/// Inicializa Firebase una sola vez. Si falla, se puede reintentar.
+final firebaseRuntimeProvider = FutureProvider<FirebaseRuntime>(
+  (ref) => FirebaseBootstrap.initialize(),
+);
+
+/// Estado de autenticación de Firebase. En modo local no hay sesión.
+final authStateProvider = StreamProvider<User?>((ref) {
+  final runtime = ref.watch(firebaseRuntimeProvider).value;
+  if (runtime == null || !runtime.isFirebase) {
+    return Stream<User?>.value(null);
+  }
+  return FirebaseAuth.instance.authStateChanges();
+});
+
+/// Operaciones de acceso con correo y contraseña.
+final authServiceProvider = Provider<AuthApi>(
+  (ref) => FirebaseAuthService(FirebaseAuth.instance),
+);
+
+/// Sesión activa: cuenta de Firebase o identidad local.
+///
+/// Lanza un error si se consulta con Firebase configurado y sin sesión
+/// iniciada. La interfaz solo muestra las pantallas de datos cuando hay un
+/// usuario autenticado.
 final appSessionProvider = Provider<AppSession>((ref) {
-  throw StateError('appSessionProvider debe sobrescribirse en main.dart');
+  final runtime = ref.watch(firebaseRuntimeProvider).value;
+  if (runtime == null) {
+    throw StateError('Firebase todavía no se ha inicializado.');
+  }
+
+  switch (runtime.mode) {
+    case FirebaseMode.local:
+      return AppSession(
+        patientId: runtime.localPatientId!,
+        firebaseStatus: const FirebaseStatus.local(
+          message:
+              'Firebase no está configurado en esta compilación. '
+              'Los datos se guardan únicamente en este dispositivo.',
+        ),
+      );
+    case FirebaseMode.error:
+      throw StateError(runtime.message ?? 'Firebase no está disponible.');
+    case FirebaseMode.firebase:
+      final user = ref.watch(authStateProvider).value;
+      if (user == null) {
+        throw StateError('Se requiere iniciar sesión.');
+      }
+      return AppSession(
+        patientId: user.uid,
+        email: user.email,
+        firebaseStatus: FirebaseStatus.connected(projectId: runtime.projectId!),
+      );
+  }
 });
 
 final recordRepositoryProvider = Provider<EmotionalRecordRepository>((ref) {

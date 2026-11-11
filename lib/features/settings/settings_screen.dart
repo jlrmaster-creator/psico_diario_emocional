@@ -160,6 +160,31 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '¿Cerrar sesión?',
+      message: 'Tus datos seguirán guardados en tu cuenta. Podrás volver a entrar con tu correo y contraseña.',
+      confirmLabel: 'Cerrar sesión',
+      destructive: false,
+    );
+    if (!confirmed) return;
+
+    try {
+      await ref.read(authServiceProvider).signOut();
+      ref.invalidate(profileProvider);
+      ref.invalidate(recordsProvider);
+      ref.invalidate(catalogProvider);
+    } catch (error) {
+      if (!context.mounted) return;
+      showErrorSnack(
+        context,
+        'No se pudo cerrar la sesión. Inténtalo de nuevo.',
+      );
+      debugPrint('Error cerrando sesión: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider).value;
@@ -205,6 +230,39 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
+          if (session.isFirebaseEnabled) ...[
+            const SizedBox(height: 20),
+            const SectionHeader(title: 'Cuenta'),
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(
+                      Icons.mail_outline_rounded,
+                      color: AppTheme.seed,
+                    ),
+                    title: const Text('Correo electrónico'),
+                    subtitle: Text(session.email ?? 'Cuenta de Firebase'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: Icon(
+                      Icons.logout_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(
+                      'Cerrar sesión',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    onTap: () => _signOut(context, ref),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           const SectionHeader(title: 'Almacenamiento'),
           AppCard(
@@ -330,7 +388,7 @@ class SettingsScreen extends ConsumerWidget {
                         '• La sesión se gestiona con Firebase Authentication.\n'
                         '• Las reglas de Firestore bloquean el acceso a datos de otros usuarios.\n'
                         '• La comunicación con Firebase viaja cifrada (HTTPS/TLS).\n'
-                        '• No se guardan nombres reales, teléfonos ni correos.\n'
+                        '• El correo electrónico se guarda en Firebase Authentication solo para acceder; no se incluye en los registros emocionales.\n'
                         '• Los PDF se generan en el dispositivo y solo se comparten cuando tú lo decides.\n\n'
                         'Si detectas un problema de seguridad, comunícalo a tu departamento de psicología.',
                   ),
