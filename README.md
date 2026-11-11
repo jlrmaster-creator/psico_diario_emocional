@@ -14,7 +14,7 @@ Firebase desplegados.**
 | Comprobación | Resultado |
 | --- | --- |
 | `flutter analyze` | Sin errores ni advertencias |
-| `flutter test` | 64 pruebas superadas |
+| `flutter test` | 76 pruebas superadas |
 | Compilación Android | APK **debug** y **release** generados con Android SDK 36 (ver [docs/TESTING.md](docs/TESTING.md)) |
 | Instalación en móvil | Verificada en un Xiaomi con MIUI/HyperOS; QA manual en curso (ver [docs/TESTING.md](docs/TESTING.md#instalación-en-xiaomi-miui-hyperos)) |
 | Firebase | Integración preparada con acceso por correo y contraseña; sin credenciales, la app arranca en modo local |
@@ -34,6 +34,9 @@ Firebase desplegados.**
   libre.
 - **Varias emociones del mismo grupo**, por ejemplo Alegría y Orgullo, cada una
   con su propia intensidad.
+- **Dictado por voz opcional** en título, situación, pensamiento, conducta y
+  texto libre, además de escribir con el teclado. El texto se añade al final del
+  campo y se puede corregir. Solo se escucha cuando tú pulsas el micrófono.
 - **Varios registros por día**, con fecha y hora opcional del acontecimiento.
 - **CRUD completo** de registros: crear, consultar, editar y eliminar.
 - **Historial** agrupado por día y filtros combinables por fecha, intervalo,
@@ -54,7 +57,8 @@ Firebase desplegados.**
   dispositivo.
 - **Privacidad por diseño**: seudónimo en lugar de nombre real, correo usado solo
   para acceder, aislamiento por paciente, sin credenciales en el repositorio y
-  consentimiento informado en el alta.
+  consentimiento informado en el alta. El dictado es opcional y la app no guarda
+  grabaciones de audio.
 
 ## Tecnologías utilizadas
 
@@ -65,6 +69,7 @@ Firebase desplegados.**
 | Persistencia local | `shared_preferences` | Funcionar sin infraestructura y sin backend propio |
 | Nube | Firebase Authentication + Cloud Firestore | Acceso con correo y contraseña y datos por paciente con reglas propias |
 | PDF | `pdf` + `printing` + `file_saver` | A4 real, vista previa, guardado y compartición |
+| Voz | `speech_to_text` | Dictado opcional con el servicio de voz del sistema |
 | Tipografía | Noto Sans (OFL) | Acentos y Unicode garantizados en el PDF |
 
 ## Requisitos
@@ -105,12 +110,12 @@ flutter build apk --release
 
 El APK se genera en `build/app/outputs/flutter-apk/`.
 
-Compilaciones verificadas en Windows 11 con Android SDK 36 el 2026-11-10:
+Compilaciones verificadas en Windows 11 con Android SDK 36 el 2026-11-11:
 
 | Variante | Archivo | Tamaño |
 | --- | --- | --- |
 | Debug | `app-debug.apk` | 181,8 MB |
-| Release | `app-release.apk` | 63,8 MB |
+| Release | `app-release.apk` | 64,5 MB |
 
 La primera compilación descarga Gradle, el NDK y CMake, por lo que puede tardar
 bastante. Las siguientes son mucho más rápidas.

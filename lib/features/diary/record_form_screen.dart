@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_exception.dart';
+import '../../core/services/dictation_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/emotion_style.dart';
 import '../../core/utils/date_utils.dart';
@@ -13,6 +14,7 @@ import '../../state/providers.dart';
 import '../../widgets/common_widgets.dart';
 import '../../widgets/dialogs.dart';
 import '../emotions/emotion_picker_sheet.dart';
+import 'widgets/dictation_mic_button.dart';
 
 /// Formulario para crear o editar un registro emocional.
 class RecordFormScreen extends ConsumerStatefulWidget {
@@ -39,6 +41,12 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
   final _behaviorController = TextEditingController();
   final _freeTextController = TextEditingController();
   final _freeTextFocus = FocusNode();
+
+  final _dictation = DictationService();
+  String? _listeningField;
+  String? _dictationError;
+  bool _dictationBusy = false;
+  int _dictationSession = 0;
 
   late DateTime _eventDate;
   String? _eventTime;
@@ -84,6 +92,8 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
 
   @override
   void dispose() {
+    _dictationSession++;
+    _dictation.cancel();
     _titleController.dispose();
     _situationController.dispose();
     _thoughtController.dispose();
@@ -187,6 +197,136 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
     });
   }
 
+  TextEditingController? _controllerFor(String fieldId) {
+    return switch (fieldId) {
+      'title' => _titleController,
+      'situation' => _situationController,
+      'thought' => _thoughtController,
+      'behavior' => _behaviorController,
+      'freeText' => _freeTextController,
+      _ => null,
+    };
+  }
+
+  Future<void> _toggleDictation(String fieldId) async {
+    if (_listeningField == fieldId) {
+      await _stopDictation();
+      return;
+    }
+
+    await _stopDictation();
+    final controller = _controllerFor(fieldId);
+    if (controller == null || !mounted) return;
+
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _dictationError = null;
+      _dictationBusy = true;
+    });
+
+    final session = ++_dictationSession;
+    final ready = await _dictation.initialize(
+      onError: (error) {
+        if (!mounted || session != _dictationSession) return;
+        setState(() {
+          _dictationError = DictationService.messageForError(error);
+          _listeningField = null;
+          _dictationBusy = false;
+        });
+      },
+      onListeningChanged: (listening) {
+        if (!mounted || session != _dictationSession) return;
+        if (!listening && _listeningField == fieldId) {
+          setState(() => _listeningField = null);
+        }
+      },
+    );
+
+    if (!mounted || session != _dictationSession) return;
+    if (!ready) {
+      setState(() {
+        _dictationBusy = false;
+        _dictationError ??= DictationService.unavailableMessage;
+      });
+      return;
+    }
+
+    final base = controller.text;
+    final started = await _dictation.start(
+      onResult: (words, isFinal) {
+        if (!mounted || session != _dictationSession) return;
+        _applyDictation(
+          controller,
+          DictationService.appendText(base, words),
+          maxLength: fieldId == 'title' ? 80 : null,
+        );
+        if (isFinal && _listeningField == fieldId) {
+          setState(() => _listeningField = null);
+        }
+      },
+    );
+
+    if (!mounted || session != _dictationSession) return;
+    setState(() {
+      _dictationBusy = false;
+      if (started) {
+        _listeningField = fieldId;
+      } else {
+        _dictationError ??= DictationService.unavailableMessage;
+      }
+    });
+  }
+
+  Future<void> _stopDictation() async {
+    _dictationSession++;
+    if (_listeningField != null && mounted) {
+      setState(() {
+        _listeningField = null;
+        _dictationBusy = false;
+      });
+    }
+    await _dictation.stop();
+  }
+
+  /// Detiene el dictado dejando que llegue el resultado final.
+  Future<void> _finishDictation() async {
+    if (_listeningField == null) return;
+    await _dictation.stop();
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (mounted && _listeningField != null) {
+      setState(() => _listeningField = null);
+    }
+  }
+
+  void _handleFieldTap() {
+    if (_listeningField != null) {
+      _stopDictation();
+    }
+  }
+
+  void _applyDictation(
+    TextEditingController controller,
+    String text, {
+    int? maxLength,
+  }) {
+    var next = text;
+    if (maxLength != null && next.length > maxLength) {
+      next = next.substring(0, maxLength);
+    }
+    controller.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+  }
+
+  Widget _mic(String fieldId) {
+    return DictationMicButton(
+      listening: _listeningField == fieldId,
+      enabled: !_dictationBusy || _listeningField == fieldId,
+      onPressed: () => _toggleDictation(fieldId),
+    );
+  }
+
   bool get _hasContent {
     return _titleController.text.trim().isNotEmpty ||
         _situationController.text.trim().isNotEmpty ||
@@ -197,6 +337,8 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
   }
 
   Future<void> _cancel() async {
+    await _stopDictation();
+    if (!mounted) return;
     if (_hasContent) {
       final discard = await showConfirmDialog(
         context,
@@ -213,6 +355,8 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
 
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
+    await _finishDictation();
+    if (!mounted) return;
     final valid = _formKey.currentState?.validate() ?? false;
     setState(() {
       _emotionError = _selected.isEmpty
@@ -276,6 +420,25 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
                   ? 'Puedes cambiar cualquier parte del registro. Los campos con * son obligatorios.'
                   : 'Escribe con calma y con tus propias palabras. Los campos con * son obligatorios.',
             ),
+            const SizedBox(height: 10),
+            const InfoNote(
+              icon: Icons.mic_none_rounded,
+              text: 'También puedes dictar con el micrófono. El texto se añade al final del campo y puedes corregirlo con el teclado.',
+            ),
+            if (_listeningField != null) ...[
+              const SizedBox(height: 10),
+              const InfoNote(
+                icon: Icons.graphic_eq_rounded,
+                text: 'Escuchando… Habla con calma. Pulsa el botón cuadrado del mismo campo para terminar.',
+              ),
+            ],
+            if (_dictationError != null) ...[
+              const SizedBox(height: 10),
+              _DictationErrorNote(
+                message: _dictationError!,
+                onDismiss: () => setState(() => _dictationError = null),
+              ),
+            ],
             const SizedBox(height: 16),
             _FormSection(
               title: 'Fecha y hora',
@@ -314,8 +477,10 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
                 maxLength: 80,
                 textCapitalization: TextCapitalization.sentences,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
+                onTap: _handleFieldTap,
+                decoration: InputDecoration(
                   hintText: 'Ej.: Conversación con mi amiga',
+                  suffixIcon: _mic('title'),
                 ),
                 validator: (value) => Validators.requiredText(
                   value,
@@ -335,9 +500,11 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
                 maxLength: 2000,
                 textCapitalization: TextCapitalization.sentences,
                 keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
+                onTap: _handleFieldTap,
+                decoration: InputDecoration(
                   hintText: 'Ej.: Una conversación con una amiga, una noticia, un recuerdo...',
                   alignLabelWithHint: true,
+                  suffixIcon: _mic('situation'),
                 ),
                 validator: (value) => Validators.requiredText(
                   value,
@@ -425,9 +592,11 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
                 maxLength: 2000,
                 textCapitalization: TextCapitalization.sentences,
                 keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
+                onTap: _handleFieldTap,
+                decoration: InputDecoration(
                   hintText: 'Ej.: "Seguro que piensa que no le importo", "No voy a poder con esto"...',
                   alignLabelWithHint: true,
+                  suffixIcon: _mic('thought'),
                 ),
                 validator: (value) => Validators.requiredText(
                   value,
@@ -447,9 +616,11 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
                 maxLength: 2000,
                 textCapitalization: TextCapitalization.sentences,
                 keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
+                onTap: _handleFieldTap,
+                decoration: InputDecoration(
                   hintText: 'Ej.: Me he callado, he salido de la habitación, he llamado a alguien...',
                   alignLabelWithHint: true,
+                  suffixIcon: _mic('behavior'),
                 ),
                 validator: (value) => Validators.requiredText(
                   value,
@@ -470,9 +641,11 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
                 maxLength: 1000,
                 textCapitalization: TextCapitalization.sentences,
                 keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
+                onTap: _handleFieldTap,
+                decoration: InputDecoration(
                   hintText: 'Ej.: "Como si llevara una mochila muy pesada"...',
                   alignLabelWithHint: true,
+                  suffixIcon: _mic('freeText'),
                 ),
               ),
             ),
@@ -528,6 +701,36 @@ class _RecordFormScreenState extends ConsumerState<RecordFormScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Aviso de error del dictado con opción de ocultarlo.
+class _DictationErrorNote extends StatelessWidget {
+  const _DictationErrorNote({required this.message, required this.onDismiss});
+
+  final String message;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: InfoNote(
+            icon: Icons.mic_off_rounded,
+            color: Theme.of(context).colorScheme.error,
+            text: message,
+          ),
+        ),
+        IconButton(
+          onPressed: onDismiss,
+          icon: const Icon(Icons.close_rounded, size: 18),
+          tooltip: 'Ocultar aviso',
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
     );
   }
 }

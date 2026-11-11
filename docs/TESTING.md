@@ -35,7 +35,7 @@ C:\tools\flutter\bin\flutter.bat test
 | --- | --- |
 | `flutter pub get` | Dependencias resueltas correctamente |
 | `flutter analyze` | `No issues found!` |
-| `flutter test` | `All tests passed!` (64 pruebas) |
+| `flutter test` | `All tests passed!` (76 pruebas) |
 
 ### Cobertura de las pruebas
 
@@ -46,6 +46,8 @@ C:\tools\flutter\bin\flutter.bat test
 | `test/data/local_repositories_test.dart` | CRUD local de registros, orden descendente, aislamiento por paciente, filtros al leer, perfil y emociones propias, recuperación ante JSON corrupto |
 | `test/services/pdf_report_service_test.dart` | Generación real de un PDF (`%PDF`), informe de un día sin registros, orden por hora, nombre del archivo y filtrado por día |
 | `test/services/insights_service_test.dart` | Frecuencia de emociones, intensidad media, semanas, mapa de calor, comparación de periodos y textos neutros del resumen |
+| `test/services/dictation_service_test.dart` | Unión del texto dictado con el escrito, espacios, silencios y traducción de errores de permiso, conexión y audio |
+| `test/features/dictation_mic_button_test.dart` | El botón invita a dictar, permite detener y avisa a la pantalla al pulsarlo |
 | `test/features/emotion_picker_sheet_test.dart` | Selección de varias emociones del mismo grupo (Alegría y Orgullo) y recuento de elegidas |
 | `test/features/record_card_test.dart` | La tarjeta del historial muestra el título y no la situación, el pensamiento ni la conducta; los registros antiguos reciben un título automático |
 | `test/widget_test.dart` | El alta aparece sin perfil, el modo local se indica de forma visible y no se puede continuar sin aceptar la privacidad |
@@ -68,7 +70,7 @@ faltantes.
 | Variante | Comando | Archivo | Tamaño | Resultado |
 | --- | --- | --- | --- | --- |
 | Debug | `flutter build apk --debug` | `build/app/outputs/flutter-apk/app-debug.apk` | 181.766.843 bytes (181,8 MB) | `√ Built` |
-| Release con Firebase, títulos y estadísticas | `flutter build apk --release --dart-define-from-file=dart_defines.json` | `build/app/outputs/flutter-apk/app-release.apk` | 67.312.984 bytes (64,2 MB) | `√ Built` |
+| Release con Firebase, títulos, estadísticas y dictado | `flutter build apk --release --dart-define-from-file=dart_defines.json` | `build/app/outputs/flutter-apk/app-release.apk` | 67.674.260 bytes (64,5 MB) | `√ Built` |
 
 Verificación con `aapt dump badging`:
 
@@ -84,9 +86,9 @@ El APK release está firmado con el certificado **Android Debug**
 instalable y válido para pruebas, pero no para publicar en Google Play.
 
 La compilación release con acceso por correo y contraseña, títulos de registro,
-estadísticas y resumen se copió además al escritorio como
-`DiarioEmocional-1.0.0-titulo-estadisticas-release.apk` para instalarla en el
-móvil. Requiere que el proyecto de Firebase tenga habilitado el proveedor
+estadísticas, resumen y dictado por voz se copió además al escritorio como
+`DiarioEmocional-1.0.0-dictado-release.apk` para instalarla en el móvil. Requiere
+que el proyecto de Firebase tenga habilitado el proveedor
 **Correo electrónico/Contraseña** y Cloud Firestore creado.
 
 La primera compilación tardó unos 47 minutos porque Gradle descargó la
@@ -182,6 +184,8 @@ app. Marca solo lo que hayas verificado.
       Inicio.
 - [ ] No se puede continuar sin aceptar la información de privacidad.
 - [ ] El texto de privacidad se puede leer completo y sin cortes.
+- [ ] La privacidad explica que el dictado es opcional, que el audio lo procesa
+      el servicio de voz del sistema y que la app no guarda grabaciones.
 - [ ] El seudónimo se guarda y aparece en Inicio y en los PDF.
 - [ ] Cambiar el seudónimo en Configuración actualiza Inicio y los informes.
 
@@ -232,6 +236,22 @@ app. Marca solo lo que hayas verificado.
 - [ ] El resumen permite alternar entre semana y mes y navegar al periodo anterior.
 - [ ] Los textos del resumen describen cambios sin usar "mejor" ni "peor".
 - [ ] Sin registros se muestra un estado vacío claro y sin presión.
+
+### Dictado por voz
+
+- [ ] La primera vez que se pulsa el micrófono, Android pide permiso para grabar.
+- [ ] Al denegar el permiso se muestra un aviso tranquilo y se puede seguir
+      escribiendo con el teclado.
+- [ ] El micrófono aparece en título, situación, pensamiento, conducta y texto
+      libre.
+- [ ] El texto dictado se añade al final del campo y se puede corregir.
+- [ ] Solo un campo escucha a la vez; al empezar en otro, el anterior se detiene.
+- [ ] Pulsar el botón cuadrado detiene el dictado y conserva lo reconocido.
+- [ ] Al guardar mientras se dicta, se conserva la última frase.
+- [ ] Al salir del formulario se deja de escuchar el micrófono.
+- [ ] Sin conexión o con el servicio de voz no disponible, se explica y se puede
+      escribir con el teclado.
+- [ ] El dictado reconoce el español del dispositivo.
 
 ### Informe PDF
 

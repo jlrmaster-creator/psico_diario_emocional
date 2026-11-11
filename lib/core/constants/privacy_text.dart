@@ -13,6 +13,7 @@ Esta aplicación es una herramienta personal para registrar emociones entre sesi
 • La información se guarda en Firebase o, si no está configurado, únicamente en este dispositivo.
 • Puedes consultar, editar, descargar y eliminar tus registros.
 • Los informes PDF se generan cuando tú decides y se comparten solo si tú lo eliges.
+• El dictado por voz es opcional. El audio lo procesa el servicio de voz del teléfono y puede enviarse a sus servidores; la app no guarda grabaciones. Siempre puedes escribir con el teclado.
 
 Esta app no diagnostica, no interpreta automáticamente tus emociones y no sustituye la atención de un profesional de la psicología.
 ''';
@@ -29,6 +30,7 @@ DATOS QUE SE TRATAN
 • Correo electrónico y contraseña de la cuenta, gestionados por Firebase Authentication.
 • Fecha, hora y contenido de los registros emocionales que tú escribes.
 • Emociones seleccionadas e intensidad indicada.
+• Audio del dictado, solo mientras tú activas el micrófono. La app no guarda grabaciones.
 • Preferencias básicas de la aplicación.
 
 No se solicitan nombre real, teléfono ni datos de localización. El correo electrónico no se copia a los registros emocionales.
@@ -38,6 +40,9 @@ Consentimiento explícito de la persona usuaria para el registro de datos relati
 
 ALMACENAMIENTO
 Firebase (Google Cloud) con cifrado en tránsito y en reposo, o almacenamiento local del dispositivo cuando Firebase no esté configurado. En modo local, los datos no se envían a ningún servidor.
+
+DICTADO POR VOZ
+El dictado es opcional. Al pulsar el micrófono, el audio se envía al servicio de reconocimiento de voz del sistema operativo (por ejemplo, el servicio de Google en Android o Apple en iOS), que puede procesarlo en línea. La app no almacena ni comparte grabaciones; solo guarda el texto que tú revisas y decides conservar. Si prefieres no usar el micrófono, puedes escribir con el teclado.
 
 CONSERVACIÓN
 Los registros se conservan hasta que tú los elimines o hasta que el responsable del tratamiento establezca un plazo. Consulta con tu psicóloga el plazo aplicable.

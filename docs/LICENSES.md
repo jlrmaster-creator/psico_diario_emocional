@@ -40,6 +40,7 @@ compatibles con una aplicación open source.
 | `pdf` | 3.13.1 | Apache-2.0 | Generación de documentos PDF |
 | `printing` | 5.15.1 | Apache-2.0 | Vista previa e impresión/compartición |
 | `file_saver` | 0.7.0 | MIT | Guardado del PDF en el dispositivo |
+| `speech_to_text` | 7.5.0 | MIT | Dictado por voz opcional |
 | `cupertino_icons` | 1.0.9 | MIT | Iconografía |
 | `flutter_lints` | 6.0.0 | BSD-3-Clause | Reglas de análisis (solo desarrollo) |
 
@@ -64,6 +65,10 @@ flutter pub deps
   incluye credenciales ni un proyecto desplegado; el responsable del
   tratamiento debe contratarlo y configurarlo.
 - **Google Fonts / Noto Sans** es un proyecto de Google con licencia OFL.
+- **Servicio de voz del sistema** (Google en Android, Apple en iOS): el dictado
+  lo utiliza solo cuando la persona pulsa el micrófono. El audio se procesa
+  según los términos y la política de privacidad del proveedor del dispositivo.
+  La app no guarda grabaciones ni las envía a Firebase.
 
 ## Marcas
 

@@ -121,6 +121,22 @@ Las pantallas `InsightsScreen` y `SummaryScreen` solo presentan esos cálculos.
 Tocar un día del mapa de calor aplica un `RecordFilter` de ese día y abre el
 historial.
 
+## Dictado por voz
+
+`lib/core/services/dictation_service.dart` envuelve `speech_to_text`:
+
+- inicializa el reconocimiento solo cuando la persona pulsa un micrófono;
+- prefiere una variante de español disponible en el dispositivo;
+- usa `ListenMode.dictation`, resultados parciales y puntuación automática;
+- combina lo dictado con el texto previo del campo mediante `appendText`;
+- traduce los errores del servicio a mensajes tranquilos en español.
+
+El formulario mantiene un único campo escuchando. Al cambiar de campo, guardar,
+cancelar o salir de la pantalla se detiene el dictado. La app no guarda audio:
+solo el texto reconocido que la persona revisa y decide conservar. La privacidad
+recuerda que el servicio de voz del sistema puede procesar el audio en línea y
+que escribir con el teclado sigue disponible.
+
 ## PDF
 
 `PdfReportService` usa `pdf` y `printing`. Genera un A4 con `MultiPage`:

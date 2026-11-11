@@ -12,7 +12,7 @@ class AppConfig {
   static const String appName = 'Diario Emocional';
   static const String defaultDepartmentName = 'Departamento de Psicología';
   static const String appVersion = '1.0.0';
-  static const String privacyVersion = '2026-11';
+  static const String privacyVersion = '2026-11.1';
 
   static const String _apiKey = String.fromEnvironment('FIREBASE_API_KEY');
   static const String _projectId = String.fromEnvironment(

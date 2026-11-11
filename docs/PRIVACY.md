@@ -20,6 +20,9 @@
 - Seudónimo o identificador interno.
 - Fecha y hora de los registros.
 - Situación, emociones, intensidad, pensamiento, conducta y texto libre.
+- Audio del dictado, solo mientras la persona activa el micrófono. La app no
+  guarda grabaciones ni las envía a Firebase; el texto reconocido es lo único
+  que se conserva si la persona decide guardarlo.
 - Nombre del departamento.
 - Fechas técnicas de creación, edición y aceptación de privacidad.
 - Identificador técnico de la sesión (UID de la cuenta de Firebase o UUID local).
@@ -61,6 +64,21 @@ dispositivo. Si el paciente desinstala la app o borra sus datos, se pierden.
 - Comunicación cifrada en tránsito (HTTPS/TLS) y cifrado en reposo de Google
   Cloud.
 - No se usan Analytics, Crashlytics, publicidad ni rastreadores.
+
+## Dictado por voz
+
+El dictado es una alternativa opcional al teclado. Al pulsar el micrófono, la
+app pide permiso para grabar y delega el reconocimiento en el servicio de voz
+del sistema operativo (Google en Android, Apple en iOS), que puede procesar el
+audio en línea según la configuración del dispositivo.
+
+- La app no guarda grabaciones de audio.
+- El audio no se envía a Firebase ni a servidores del departamento.
+- Solo se conserva el texto reconocido que la persona revisa y decide guardar.
+- La persona puede escribir con el teclado en cualquier momento, sin usar el
+  micrófono.
+- El responsable debe revisar si el proveedor del servicio de voz del sistema
+  requiere un acuerdo adicional o aparece en el registro de actividades.
 
 ## Conservación
 

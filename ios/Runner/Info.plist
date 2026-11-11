@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>El micrófono solo se usa cuando tú pulsas el botón de dictado para escribir un registro sin usar el teclado.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>El dictado convierte tu voz en texto para rellenar los campos del registro. Es opcional y puedes escribir con el teclado.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
