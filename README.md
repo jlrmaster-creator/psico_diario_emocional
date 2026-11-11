@@ -14,10 +14,10 @@ Firebase desplegados.**
 | Comprobación | Resultado |
 | --- | --- |
 | `flutter analyze` | Sin errores ni advertencias |
-| `flutter test` | 25 pruebas superadas |
+| `flutter test` | 40 pruebas superadas |
 | Compilación Android | APK **debug** y **release** generados con Android SDK 36 (ver [docs/TESTING.md](docs/TESTING.md)) |
 | Instalación en móvil | Verificada en un Xiaomi con MIUI/HyperOS; QA manual en curso (ver [docs/TESTING.md](docs/TESTING.md#instalación-en-xiaomi-miui-hyperos)) |
-| Firebase | Integración preparada; sin credenciales, la app arranca en modo local |
+| Firebase | Integración preparada con acceso por correo y contraseña; sin credenciales, la app arranca en modo local |
 | iOS | Proyecto generado; requiere macOS/Xcode para compilar |
 
 > La app no diagnostica, no interpreta automáticamente las emociones y no
@@ -38,12 +38,15 @@ Firebase desplegados.**
 - **Informe PDF diario** en A4 con cabecera, todos los registros del día, texto
   largo, acentos, numeración de páginas, nota de privacidad y pie con la fecha
   de generación. Vista previa, guardado en el dispositivo y compartición.
-- **Modo local visible**: si Firebase no está configurado o falla, la app lo
-  indica en la pantalla de inicio y en Configuración, y guarda los datos
-  únicamente en el dispositivo.
-- **Privacidad por diseño**: seudónimo en lugar de nombre real, aislamiento por
-  paciente, sin credenciales en el repositorio y consentimiento informado en el
-  alta.
+- **Acceso con correo y contraseña**: inicio de sesión, registro propio,
+  recuperación de contraseña y cierre de sesión. Cada cuenta solo accede a sus
+  propios datos.
+- **Modo local visible**: si Firebase no está configurado, la app lo indica en la
+  pantalla de inicio y en Configuración, y guarda los datos únicamente en el
+  dispositivo.
+- **Privacidad por diseño**: seudónimo en lugar de nombre real, correo usado solo
+  para acceder, aislamiento por paciente, sin credenciales en el repositorio y
+  consentimiento informado en el alta.
 
 ## Tecnologías utilizadas
 
@@ -52,7 +55,7 @@ Firebase desplegados.**
 | Framework | Flutter 3.47 / Dart 3.13 | App Android e iOS real, UI adaptable y código abierto |
 | Estado | Riverpod 3.5 (sin codegen) | Providers testeables y bajo acoplamiento |
 | Persistencia local | `shared_preferences` | Funcionar sin infraestructura y sin backend propio |
-| Nube | Firebase Authentication + Cloud Firestore | Sesión anónima y datos por paciente con reglas propias |
+| Nube | Firebase Authentication + Cloud Firestore | Acceso con correo y contraseña y datos por paciente con reglas propias |
 | PDF | `pdf` + `printing` + `file_saver` | A4 real, vista previa, guardado y compartición |
 | Tipografía | Noto Sans (OFL) | Acentos y Unicode garantizados en el PDF |
 
@@ -111,8 +114,8 @@ bastante. Las siguientes son mucho más rápidas.
 
 ## Conectar Firebase
 
-1. Crea un proyecto de Firebase y habilita **Authentication > Anónimo** y
-   **Cloud Firestore**.
+1. Crea un proyecto de Firebase y habilita **Authentication > Correo
+   electrónico/Contraseña** y **Cloud Firestore**.
 2. Registra las apps Android/iOS con estos identificadores:
    - Android: `com.psicologia.diario_emocional`
    - iOS: `com.psicologia.diarioEmocional`
@@ -127,8 +130,10 @@ flutter build apk --release --dart-define-from-file=dart_defines.json
 ```
 
 Los pasos detallados están en [docs/FIREBASE_SETUP.md](docs/FIREBASE_SETUP.md).
-Si falta cualquier variable o la autenticación falla, la app **no simula** una
-conexión: continúa en modo local y muestra el motivo.
+Si falta la configuración, la app arranca en **modo local**. Si Firebase está
+configurado, exige iniciar sesión: un fallo de autenticación se muestra en la
+pantalla de acceso y **nunca** se simula una conexión ni se accede a los datos
+sin cuenta.
 
 ### Variables de configuración
 
@@ -170,9 +175,11 @@ Más detalle en [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Datos y privacidad
 
-- No se solicita nombre real, teléfono, correo ni localización.
-- El perfil usa un seudónimo y un identificador técnico (UID anónimo de Firebase
-  o UUID local).
+- No se solicita nombre real, teléfono ni localización. El correo electrónico se
+  usa solo para crear la cuenta y acceder; no se copia a los registros
+  emocionales.
+- El perfil usa un seudónimo y un identificador técnico (UID de la cuenta de
+  Firebase o UUID local).
 - En Firestore cada paciente solo puede leer y escribir
   `users/{su UID}/...` gracias a las reglas incluidas.
 - Los PDF se generan en el dispositivo y solo salen de él cuando el paciente usa
@@ -189,7 +196,8 @@ flutter test
 ```
 
 Las pruebas cubren serialización, filtros, catálogo, CRUD local, aislamiento por
-paciente, generación real de PDF y el flujo inicial de consentimiento. Ver
+paciente, generación real de PDF, el flujo inicial de consentimiento y el acceso
+con correo y contraseña (validaciones, registro, errores y recuperación). Ver
 [docs/TESTING.md](docs/TESTING.md).
 
 ## Futuras ampliaciones
@@ -226,7 +234,8 @@ compatibles con uso open source; el detalle está en
   el PDF.
 - El modo local no sincroniza entre dispositivos. Si se configura Firebase
   después, los datos locales no se migran automáticamente.
-- La autenticación es anónima: si el paciente borra los datos de la app o cambia
-  de dispositivo, pierde el acceso a la sesión anterior salvo que se implante un
-  mecanismo de recuperación (fuera del alcance de esta versión).
+- La cuenta se recupera con el correo electrónico y la contraseña. No se ha
+  implementado verificación de correo, borrado de cuenta desde la app ni roles
+  de profesional; para producción conviene añadirlos.
+- En modo local no hay inicio de sesión: el acceso queda ligado al dispositivo.
 - La compilación iOS requiere macOS y no se ha verificado en Windows.

@@ -7,7 +7,9 @@ en tiempo de compilación mediante `--dart-define-from-file`.
 ## 1. Crear el proyecto
 
 1. Entra en <https://console.firebase.google.com/> y crea un proyecto.
-2. En **Authentication > Sign-in method**, habilita el proveedor **Anónimo**.
+2. En **Authentication > Sign-in method**, habilita el proveedor **Correo
+   electrónico/Contraseña**. Los pacientes crean su propia cuenta desde la app y
+   pueden recuperar la contraseña por correo.
 3. En **Firestore Database**, crea una base de datos en modo producción.
 4. Elige una ubicación cercana a los usuarios (por ejemplo, `europe-west1` o
    `europe-southwest1`) y revisa las implicaciones de residencia de datos con el
@@ -87,13 +89,23 @@ flutter build apk --release --dart-define-from-file=dart_defines.json
 `MESSAGING_SENDER_ID`, `STORAGE_BUCKET` y el APP_ID de la plataforma. Si falta
 algo, la app arranca en **modo local** y lo muestra.
 
-Si la inicialización o el inicio de sesión anónimo fallan, `FirebaseBootstrap`
-captura el error, usa un identificador local y muestra el motivo en
-Configuración. La app nunca marca Firebase como conectado sin una sesión real.
+Con Firebase configurado, la app **exige iniciar sesión**. Si la inicialización
+falla, muestra una pantalla de error con opción de reintentar; no se pasa a modo
+local ni se accede a datos sin cuenta. Si el correo o la contraseña son
+incorrectos, el error se muestra en la pantalla de acceso.
+
+El modo local solo se usa cuando **no hay configuración de Firebase** en la
+compilación. En ese caso no hay inicio de sesión y los datos quedan ligados al
+dispositivo.
+
+El correo electrónico se guarda en Firebase Authentication para identificar la
+cuenta. No se copia a Firestore: el perfil sigue usando un seudónimo y el UID
+como identificador.
 
 ## Checklist antes de producción
 
-- [ ] Authentication anónimo habilitado.
+- [ ] Authentication con correo y contraseña habilitado.
+- [ ] Plantillas de correo (verificación y restablecimiento) revisadas en español.
 - [ ] Firestore en modo producción con las reglas de este repositorio.
 - [ ] Índices desplegados (el archivo actual no requiere índices compuestos).
 - [ ] Variables de Firebase revisadas para Android e iOS.

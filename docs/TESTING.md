@@ -35,7 +35,7 @@ C:\tools\flutter\bin\flutter.bat test
 | --- | --- |
 | `flutter pub get` | Dependencias resueltas correctamente |
 | `flutter analyze` | `No issues found!` |
-| `flutter test` | `All tests passed!` (25 pruebas) |
+| `flutter test` | `All tests passed!` (40 pruebas) |
 
 ### Cobertura de las pruebas
 
@@ -46,6 +46,8 @@ C:\tools\flutter\bin\flutter.bat test
 | `test/data/local_repositories_test.dart` | CRUD local de registros, orden descendente, aislamiento por paciente, filtros al leer, perfil y emociones propias, recuperación ante JSON corrupto |
 | `test/services/pdf_report_service_test.dart` | Generación real de un PDF (`%PDF`), informe de un día sin registros, orden por hora, nombre del archivo y filtrado por día |
 | `test/widget_test.dart` | El alta aparece sin perfil, el modo local se indica de forma visible y no se puede continuar sin aceptar la privacidad |
+| `test/services/auth_service_test.dart` | Traducción de errores de Firebase Auth, validación de correo y contraseña |
+| `test/features/auth_screen_test.dart` | Inicio de sesión, registro, contraseñas distintas, error de acceso y envío de recuperación |
 
 Las pruebas de PDF cargan la tipografía Noto Sans incluida en `assets/fonts/`,
 por lo que los acentos y símbolos se renderizan sin advertencias de glifos
@@ -58,12 +60,12 @@ faltantes.
 
 ### Android
 
-**APK generados y verificados el 2026-11-10** en esta máquina con Android SDK 36:
+**APK generados y verificados el 2026-11-10/11** en esta máquina con Android SDK 36:
 
 | Variante | Comando | Archivo | Tamaño | Resultado |
 | --- | --- | --- | --- | --- |
 | Debug | `flutter build apk --debug` | `build/app/outputs/flutter-apk/app-debug.apk` | 181.766.843 bytes (181,8 MB) | `√ Built` |
-| Release | `flutter build apk --release` | `build/app/outputs/flutter-apk/app-release.apk` | 66.885.768 bytes (63,8 MB) | `√ Built` |
+| Release con Firebase y acceso | `flutter build apk --release --dart-define-from-file=dart_defines.json` | `build/app/outputs/flutter-apk/app-release.apk` | 67.066.460 bytes (64,0 MB) | `√ Built` |
 
 Verificación con `aapt dump badging`:
 
@@ -77,6 +79,11 @@ application-label:'Diario Emocional'
 El APK release está firmado con el certificado **Android Debug**
 (`CN=Android Debug`), tal y como indica `apksigner verify --print-certs`. Es
 instalable y válido para pruebas, pero no para publicar en Google Play.
+
+La compilación release con acceso por correo y contraseña se copió además al
+escritorio como `DiarioEmocional-1.0.0-auth-release.apk` para instalarla en el
+móvil. Requiere que el proyecto de Firebase tenga habilitado el proveedor
+**Correo electrónico/Contraseña** y Cloud Firestore creado.
 
 La primera compilación tardó unos 47 minutos porque Gradle descargó la
 distribución, el NDK 28.2 y CMake 3.22.1. La compilación release posterior
@@ -151,9 +158,24 @@ flutter build ios --release
 Ejecuta estos casos en un dispositivo o emulador Android antes de entregar la
 app. Marca solo lo que hayas verificado.
 
+### Acceso y cuenta
+
+- [ ] Con Firebase configurado, la app muestra la pantalla de acceso y no deja
+      entrar sin iniciar sesión.
+- [ ] Se puede crear una cuenta con correo y contraseña.
+- [ ] Un correo ya registrado muestra un aviso claro.
+- [ ] Una contraseña de menos de 8 caracteres se rechaza.
+- [ ] En el registro, si las contraseñas no coinciden, se muestra un aviso.
+- [ ] Un correo o una contraseña incorrectos muestran un error en la pantalla.
+- [ ] "¿Olvidaste tu contraseña?" envía el correo de restablecimiento.
+- [ ] Al cerrar y reabrir la app se mantiene la sesión iniciada.
+- [ ] Cerrar sesión desde Configuración vuelve a la pantalla de acceso.
+- [ ] Dos cuentas distintas no ven datos ajenos.
+
 ### Primer uso y privacidad
 
-- [ ] La app arranca en modo local y lo indica en el alta y en Inicio.
+- [ ] En modo local, la app arranca sin pedir acceso y lo indica en el alta y en
+      Inicio.
 - [ ] No se puede continuar sin aceptar la información de privacidad.
 - [ ] El texto de privacidad se puede leer completo y sin cortes.
 - [ ] El seudónimo se guarda y aparece en Inicio y en los PDF.
@@ -297,9 +319,10 @@ en `.gitignore`.
 | Recorrido completo de la lista de QA en el móvil | El APK ya está instalado en un Xiaomi, pero faltan las pruebas manuales de la sección 4 |
 | Compartir/guardar el PDF en Android | Requiere probar con las apps del dispositivo |
 | App iOS | Requiere macOS/Xcode |
-| Conexión real a Firebase | No se han aportado credenciales ni proyecto |
+| Conexión real a Firebase | Falta habilitar el acceso por correo y contraseña y crear Firestore en el proyecto del equipo |
 | Sincronización entre dispositivos | Depende de Firebase y de un proyecto real |
-| Restauración de sesión anónima | Depende de Firebase; no hay recuperación de cuenta en esta versión |
+| Restauración de cuenta | Depende de Firebase; la contraseña se recupera por correo |
+| Verificación de correo y borrado de cuenta | No implementados en esta versión |
 
 Cuando completes alguna de estas verificaciones, actualiza este documento con
 la fecha, el dispositivo y el resultado exacto.

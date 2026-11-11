@@ -35,7 +35,7 @@ compatibles con una aplicación open source.
 | `shared_preferences` | 2.5.6 | BSD-3-Clause | Persistencia local |
 | `uuid` | 4.6.0 | MIT | Identificadores locales |
 | `firebase_core` | 5.1.0 | BSD-3-Clause | Inicialización de Firebase |
-| `firebase_auth` | 7.0.1 | BSD-3-Clause | Sesión anónima |
+| `firebase_auth` | 7.0.1 | BSD-3-Clause | Acceso con correo y contraseña |
 | `cloud_firestore` | 7.1.0 | BSD-3-Clause | Base de datos en la nube |
 | `pdf` | 3.13.1 | Apache-2.0 | Generación de documentos PDF |
 | `printing` | 5.15.1 | Apache-2.0 | Vista previa e impresión/compartición |

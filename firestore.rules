@@ -2,8 +2,9 @@ rules_version = '2';
 
 // Reglas de Cloud Firestore para Diario Emocional.
 //
-// Modelo: cada paciente usa una sesión anónima de Firebase Authentication y
-// solo puede leer y escribir dentro de `users/{su UID}`.
+// Modelo: cada paciente inicia sesión con su cuenta de correo y contraseña
+// (Firebase Authentication) y solo puede leer y escribir dentro de
+// `users/{su UID}`.
 //
 // Despliegue: firebase deploy --only firestore:rules
 // Detalles: docs/FIRESTORE.md y docs/FIREBASE_SETUP.md

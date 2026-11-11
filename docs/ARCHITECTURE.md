@@ -27,23 +27,29 @@ La capa de UI no conoce si los datos vienen de Firestore o de
 ## Arranque
 
 1. `main.dart` inicializa los datos de locale español (`initializeDateFormatting`).
-2. `FirebaseBootstrap.initialize()` comprueba si existen las variables
-   `--dart-define` necesarias.
+2. `firebaseRuntimeProvider` ejecuta `FirebaseBootstrap.initialize()`, que
+   comprueba si existen las variables `--dart-define` necesarias.
    - Si no existen: crea/recupera un identificador local y devuelve una sesión en
      **modo local**.
-   - Si existen: inicializa Firebase, crea una sesión anónima y usa el UID como
-     identificador de paciente.
-   - Si Firebase falla: cae a modo local y conserva el mensaje de error para
-     mostrarlo en la interfaz. Nunca se presenta como conectado.
-3. `ProviderScope` inyecta la sesión mediante `appSessionProvider`.
+   - Si existen: inicializa Firebase y devuelve el modo **firebase**.
+   - Si Firebase falla: devuelve un error y la app muestra una pantalla de
+     reintento. Nunca se presenta como conectado ni se cae a modo local.
+3. En modo Firebase, `AppRoot` observa `authStateProvider`. Sin usuario muestra
+   `AuthScreen` (acceso, registro y recuperación de contraseña); con usuario
+   carga el perfil.
 4. `AppRoot` observa `profileProvider`: si no hay perfil muestra el alta; si lo
    hay, muestra la pantalla principal.
+5. `appSessionProvider` combina el modo de almacenamiento con la cuenta activa:
+   usa el UID de Firebase como `patientId` o el UUID local en modo local.
 
 ## Estado
 
 | Provider | Tipo | Responsabilidad |
 | --- | --- | --- |
-| `appSessionProvider` | `Provider` | Sesión y modo de almacenamiento (se sobrescribe en `main`) |
+| `firebaseRuntimeProvider` | `FutureProvider` | Inicialización de Firebase y modo de almacenamiento |
+| `authStateProvider` | `StreamProvider` | Usuario autenticado o `null` |
+| `authServiceProvider` | `Provider` | Acceso, registro, recuperación y cierre de sesión |
+| `appSessionProvider` | `Provider` | Sesión y modo de almacenamiento derivados de Firebase o de la identidad local |
 | `recordRepositoryProvider` | `Provider` | Elige repositorio local o Firestore |
 | `profileRepositoryProvider` | `Provider` | Perfil local o Firestore |
 | `catalogRepositoryProvider` | `Provider` | Emociones personalizadas |
@@ -123,8 +129,9 @@ deep links en esta versión.
   providers se escriben a mano.
 - **Filtros en cliente**: menor complejidad y ningún índice compuesto; suficiente
   para el volumen esperado de un diario personal.
-- **Autenticación anónima**: minimiza datos personales. Como contrapartida, no
-  hay recuperación de cuenta entre dispositivos.
+- **Autenticación con correo y contraseña**: permite recuperar la cuenta y
+  mantener la continuidad entre dispositivos. Como contrapartida, se trata un
+  dato personal adicional (el correo) que se limita a la autenticación.
 - **Modo local primero**: la app es útil sin infraestructura y el modo se indica
   de forma explícita para no dar una falsa sensación de sincronización.
 - **Sin panel clínico**: el paciente decide qué PDF comparte. Un portal para

@@ -51,8 +51,9 @@ y del grupo para que el registro histórico no dependa del catálogo actual.
 
 ## Aislamiento por paciente
 
-El UID procede de Firebase Authentication (sesión anónima). Las reglas incluidas
-solo permiten a cada usuario acceder a su propio documento y subcolecciones:
+El UID procede de Firebase Authentication (cuenta con correo y contraseña). Las
+reglas incluidas solo permiten a cada usuario acceder a su propio documento y
+subcolecciones:
 
 ```text
 request.auth != null && request.auth.uid == userId

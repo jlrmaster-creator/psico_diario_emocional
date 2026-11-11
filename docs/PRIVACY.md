@@ -22,10 +22,15 @@
 - Situación, emociones, intensidad, pensamiento, conducta y texto libre.
 - Nombre del departamento.
 - Fechas técnicas de creación, edición y aceptación de privacidad.
-- Identificador técnico de la sesión (UID anónimo de Firebase o UUID local).
+- Identificador técnico de la sesión (UID de la cuenta de Firebase o UUID local).
+- Correo electrónico y contraseña de la cuenta, gestionados por Firebase
+  Authentication. La contraseña se almacena cifrada por Firebase y la app nunca
+  la guarda.
 
-**No se solicitan**: nombre real, DNI, teléfono, correo electrónico, dirección,
-geolocalización, contactos ni datos de salud de terceros.
+**No se solicitan**: nombre real, DNI, teléfono, dirección, geolocalización,
+contactos ni datos de salud de terceros. El correo electrónico se usa solo para
+crear la cuenta, iniciar sesión y recuperar la contraseña; no se copia a los
+registros emocionales ni al perfil de Firestore.
 
 Los datos emocionales pueden considerarse datos relativos a la salud (art. 9
 RGPD) cuando permiten inferir el estado de salud de una persona. Por eso se
@@ -50,7 +55,8 @@ dispositivo. Si el paciente desinstala la app o borra sus datos, se pierden.
 
 ### Modo Firebase
 
-- Firebase Authentication con sesión anónima.
+- Firebase Authentication con cuenta de correo y contraseña. La contraseña la
+  gestiona Firebase; la app no la almacena.
 - Cloud Firestore con reglas que aíslan `users/{uid}/...`.
 - Comunicación cifrada en tránsito (HTTPS/TLS) y cifrado en reposo de Google
   Cloud.
@@ -79,7 +85,9 @@ gestiona por el canal que defina el responsable.
 ## Seguridad
 
 - Minimización de datos y seudonimización.
-- Autenticación individual; sin cuentas compartidas.
+- Autenticación individual con correo y contraseña; sin cuentas compartidas.
+- Posibilidad de restablecer la contraseña por correo electrónico.
+- Recomendación: activar la verificación de correo en Firebase para producción.
 - Reglas de Firestore con aislamiento estricto por UID y validación de
   `patientId`.
 - Sin credenciales ni claves en el repositorio; configuración por variables de
@@ -100,14 +108,19 @@ Antes de un uso real, el responsable debería:
 5. Definir un protocolo de brechas de seguridad y un canal de contacto.
 6. Decidir si se permite el uso en dispositivos compartidos (la app no tiene
    perfiles múltiples).
-7. Valorar un mecanismo de recuperación de cuenta si se necesita continuidad
-   entre dispositivos.
+7. Definir el proceso de supresión de la cuenta: borrar el usuario de Firebase
+   Authentication y sus datos en Firestore.
+8. Valorar la verificación de correo y un panel de administración para el
+   profesional.
 
 ## Riesgos conocidos
 
-- La sesión anónima se pierde si se borran los datos de la app o se cambia de
-  dispositivo; no hay recuperación.
-- En modo local no hay copia de seguridad ni sincronización.
+- El correo electrónico es un dato personal adicional; se limita a la
+  autenticación y no se incluye en los registros emocionales.
+- Quien conozca el correo y la contraseña puede acceder a la cuenta. Conviene
+  exigir contraseñas robustas y activar la verificación de correo.
+- No hay borrado de cuenta desde la app: debe gestionarlo el responsable.
+- En modo local no hay inicio de sesión, copia de seguridad ni sincronización.
 - Un dispositivo desbloqueado permite ver la app abierta.
 - La compartición de un PDF saca los datos del control de la app; el paciente
   decide con quién lo comparte.
