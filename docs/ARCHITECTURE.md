@@ -139,16 +139,26 @@ que escribir con el teclado sigue disponible.
 
 ## PDF
 
-`PdfReportService` usa `pdf` y `printing`. Genera un A4 con `MultiPage`:
+`PdfReportService` usa `pdf` y `printing`. Genera un A4 con `MultiPage` en dos
+modalidades:
 
-- cabecera con departamento, paciente, fecha y número de registros;
-- todos los registros del día ordenados por hora, con su título;
-- emociones con intensidad y textos largos;
-- pie con nota de privacidad y `Página X de Y`;
-- tipografía **Noto Sans** incluida en `assets/fonts` para acentos y símbolos.
+- **Informe diario**: cabecera con departamento, paciente, fecha y número de
+  registros; todos los registros del día ordenados por hora, con su título;
+  emociones con intensidad y textos largos.
+- **Informe semanal**: cabecera con el intervalo de lunes a domingo, métricas del
+  periodo (registros, días, intensidad media y emoción más frecuente), gráfico de
+  barras de las emociones más frecuentes, distribución por grupos, tabla de
+  estadísticas por emoción y tabla con todos los registros de la semana.
+
+Ambos incluyen pie con nota de privacidad y `Página X de Y`, y usan la tipografía
+**Noto Sans** incluida en `assets/fonts` para acentos y símbolos. El informe
+semanal reutiliza los agregados de `insights_service.dart` y filtra los registros
+con `recordsInRange`, por lo que no duplica los cálculos estadísticos.
 
 La vista previa usa `PdfPreview`; guardar usa `file_saver`; compartir usa
-`Printing.sharePdf`.
+`Printing.sharePdf`. Los nombres de archivo son
+`diario_emocional_AAAA-MM-DD.pdf` y
+`diario_emocional_semana_AAAA-MM-DD.pdf` (fecha del lunes).
 
 ## Navegación
 

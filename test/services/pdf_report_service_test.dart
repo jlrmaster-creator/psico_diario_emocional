@@ -15,17 +15,18 @@ void main() {
   EmotionalRecord record({
     required String id,
     required String time,
+    DateTime? date,
     String freeText =
         'Un texto largo con acentos: emoción, corazón, mañana, pingüino, '
         'canción y una posdata que debe caber en el informe.',
   }) {
-    final date = DateTime(2026, 11, 10);
+    final day = date ?? DateTime(2026, 11, 10);
     return EmotionalRecord(
       id: id,
       patientId: 'patient-1',
-      eventDate: date,
-      createdAt: DateTime(2026, 11, 10, 8, 0),
-      updatedAt: DateTime(2026, 11, 10, 8, 0),
+      eventDate: day,
+      createdAt: DateTime(day.year, day.month, day.day, 8, 0),
+      updatedAt: DateTime(day.year, day.month, day.day, 8, 0),
       situation: 'Situación con acentos: reunión, café y conversación.',
       emotions: const [
         SelectedEmotion(
@@ -108,6 +109,77 @@ void main() {
       PdfReportService.dailyReportFileName(DateTime(2026, 11, 10)),
       'diario_emocional_2026-11-10.pdf',
     );
+  });
+
+  test('el nombre del archivo semanal usa el lunes de la semana', () {
+    expect(
+      PdfReportService.weeklyReportFileName(DateTime(2026, 11, 9)),
+      'diario_emocional_semana_2026-11-09.pdf',
+    );
+  });
+
+  test('genera un PDF semanal con métricas, tablas y gráficos', () async {
+    final bytes = await const PdfReportService().buildWeeklyReport(
+      WeeklyReportData(
+        departmentName: 'Departamento de Psicología',
+        patientPseudonym: 'Luna',
+        weekStart: DateTime(2026, 11, 9),
+        weekEnd: DateTime(2026, 11, 15),
+        records: [
+          record(id: 'lunes', time: '09:15', date: DateTime(2026, 11, 9)),
+          record(id: 'miercoles', time: '18:40', date: DateTime(2026, 11, 11)),
+          record(id: 'viernes', time: '12:05', date: DateTime(2026, 11, 13)),
+        ],
+        generatedAt: DateTime(2026, 11, 15, 20, 5),
+      ),
+    );
+
+    expect(bytes, isNotEmpty);
+    expect(bytes.length, greaterThan(4000));
+    expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+  });
+
+  test('genera un PDF semanal aunque no haya registros', () async {
+    final bytes = await const PdfReportService().buildWeeklyReport(
+      WeeklyReportData(
+        departmentName: 'Departamento de Psicología',
+        patientPseudonym: 'Paciente',
+        weekStart: DateTime(2026, 11, 9),
+        weekEnd: DateTime(2026, 11, 15),
+        records: const [],
+        generatedAt: DateTime(2026, 11, 15, 20, 5),
+      ),
+    );
+
+    expect(bytes, isNotEmpty);
+    expect(String.fromCharCodes(bytes.take(4)), '%PDF');
+  });
+
+  test('el informe semanal filtra, ordena y agrega estadísticas', () {
+    final data = WeeklyReportData(
+      departmentName: 'Departamento',
+      patientPseudonym: 'Luna',
+      weekStart: DateTime(2026, 11, 9),
+      weekEnd: DateTime(2026, 11, 15),
+      records: [
+        record(id: 'miercoles', time: '18:40', date: DateTime(2026, 11, 11)),
+        record(id: 'lunes-tarde', time: '17:30', date: DateTime(2026, 11, 9)),
+        record(id: 'lunes-manana', time: '09:15', date: DateTime(2026, 11, 9)),
+        record(id: 'fuera', time: '10:00', date: DateTime(2026, 11, 16)),
+      ],
+      generatedAt: DateTime(2026, 11, 15, 20, 5),
+    );
+
+    expect(data.sortedRecords.map((item) => item.id), <String>[
+      'lunes-manana',
+      'lunes-tarde',
+      'miercoles',
+    ]);
+    expect(data.stats.recordCount, 3);
+    expect(data.stats.daysRecorded, 2);
+    expect(data.stats.topEmotionName, 'Alivio');
+    expect(data.stats.emotions.first.count, 3);
+    expect(data.stats.averageIntensity, 6);
   });
 
   test('recordsForDate filtra por día ignorando la hora', () {

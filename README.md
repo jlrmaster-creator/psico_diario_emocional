@@ -2,7 +2,7 @@
 
 Aplicación móvil en Flutter para que un departamento de psicología ofrezca a sus
 pacientes un espacio privado donde registrar emociones entre sesiones y generar
-un informe PDF diario que puedan compartir voluntariamente.
+informes PDF diarios o semanales que puedan compartir voluntariamente.
 
 La app funciona **sin Firebase** en modo local y está preparada para conectarse a
 Firebase Authentication + Cloud Firestore cuando el equipo aporte su propia
@@ -14,7 +14,7 @@ Firebase desplegados.**
 | Comprobación | Resultado |
 | --- | --- |
 | `flutter analyze` | Sin errores ni advertencias |
-| `flutter test` | 76 pruebas superadas |
+| `flutter test` | 80 pruebas superadas |
 | Compilación Android | APK **debug** y **release** generados con Android SDK 36 (ver [docs/TESTING.md](docs/TESTING.md)) |
 | Instalación en móvil | Verificada en un Xiaomi con MIUI/HyperOS; QA manual en curso (ver [docs/TESTING.md](docs/TESTING.md#instalación-en-xiaomi-miui-hyperos)) |
 | Firebase | Integración preparada con acceso por correo y contraseña; sin credenciales, la app arranca en modo local |
@@ -46,9 +46,12 @@ Firebase desplegados.**
   últimas ocho semanas y calendario tipo mapa de calor. Sin rachas ni juicios.
 - **Resumen semanal o mensual** con lo que ha cambiado respecto al periodo
   anterior, en texto claro y sin valoraciones.
-- **Informe PDF diario** en A4 con cabecera, todos los registros del día, texto
-  largo, acentos, numeración de páginas, nota de privacidad y pie con la fecha
-  de generación. Vista previa, guardado en el dispositivo y compartición.
+- **Informes PDF diarios y semanales** en A4. El diario incluye cabecera, todos
+  los registros del día, textos largos, acentos, numeración de páginas, nota de
+  privacidad y pie con la fecha de generación. El semanal añade métricas del
+  periodo, gráfico de emociones más frecuentes, distribución por grupos, tabla
+  de estadísticas y tabla con todos los registros de la semana. Ambos permiten
+  vista previa, guardado en el dispositivo y compartición.
 - **Acceso con correo y contraseña**: inicio de sesión, registro propio,
   recuperación de contraseña y cierre de sesión. Cada cuenta solo accede a sus
   propios datos.
@@ -209,9 +212,9 @@ flutter test
 ```
 
 Las pruebas cubren serialización, filtros, catálogo, CRUD local, aislamiento por
-paciente, generación real de PDF, el flujo inicial de consentimiento y el acceso
-con correo y contraseña (validaciones, registro, errores y recuperación). Ver
-[docs/TESTING.md](docs/TESTING.md).
+paciente, generación real de PDF diarios y semanales, estadísticas, el flujo
+inicial de consentimiento y el acceso con correo y contraseña (validaciones,
+registro, errores y recuperación). Ver [docs/TESTING.md](docs/TESTING.md).
 
 ## Futuras ampliaciones
 
@@ -229,7 +232,7 @@ La arquitectura está preparada para añadir módulos sin tocar el núcleo:
 - **Panel para profesionales**: exigiría autenticación con roles, reglas de
   Firestore específicas y revisión legal; no forma parte de esta versión.
 - **Exportación adicional**: el servicio de PDF es independiente de la UI, por
-  lo que se puede reutilizar para informes semanales o mensuales.
+  lo que se puede reutilizar para informes mensuales o de un intervalo a medida.
 
 Antes de ampliar el esquema de datos, actualiza `docs/FIRESTORE.md` y prueba la
 migración con datos anonimizados.

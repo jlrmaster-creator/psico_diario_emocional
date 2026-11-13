@@ -35,7 +35,7 @@ C:\tools\flutter\bin\flutter.bat test
 | --- | --- |
 | `flutter pub get` | Dependencias resueltas correctamente |
 | `flutter analyze` | `No issues found!` |
-| `flutter test` | `All tests passed!` (76 pruebas) |
+| `flutter test` | `All tests passed!` (80 pruebas) |
 
 ### Cobertura de las pruebas
 
@@ -44,7 +44,7 @@ C:\tools\flutter\bin\flutter.bat test
 | `test/models/emotional_record_test.dart` | Serialización completa (incluido el título), intensidad máxima, `copyWith`, límite 0–10, combinación de filtros y títulos automáticos para registros antiguos |
 | `test/data/emotion_catalog_test.dart` | Los seis grupos del catálogo, identificadores únicos, búsqueda sin tildes ni mayúsculas, emociones propias y catálogo vacío |
 | `test/data/local_repositories_test.dart` | CRUD local de registros, orden descendente, aislamiento por paciente, filtros al leer, perfil y emociones propias, recuperación ante JSON corrupto |
-| `test/services/pdf_report_service_test.dart` | Generación real de un PDF (`%PDF`), informe de un día sin registros, orden por hora, nombre del archivo y filtrado por día |
+| `test/services/pdf_report_service_test.dart` | Generación real de PDF diarios y semanales (`%PDF`), informes sin registros, orden por día y hora, nombres de archivo, filtrado por semana y agregados del informe semanal |
 | `test/services/insights_service_test.dart` | Frecuencia de emociones, intensidad media, semanas, mapa de calor, comparación de periodos y textos neutros del resumen |
 | `test/services/dictation_service_test.dart` | Unión del texto dictado con el escrito, espacios, silencios y traducción de errores de permiso, conexión y audio |
 | `test/features/dictation_mic_button_test.dart` | El botón invita a dictar, permite detener y avisa a la pantalla al pulsarlo |
@@ -65,12 +65,12 @@ faltantes.
 
 ### Android
 
-**APK generados y verificados el 2026-11-10/11** en esta máquina con Android SDK 36:
+**APK generados y verificados el 2026-11-10/13** en esta máquina con Android SDK 36:
 
 | Variante | Comando | Archivo | Tamaño | Resultado |
 | --- | --- | --- | --- | --- |
 | Debug | `flutter build apk --debug` | `build/app/outputs/flutter-apk/app-debug.apk` | 181.766.843 bytes (181,8 MB) | `√ Built` |
-| Release con Firebase, títulos, estadísticas y dictado | `flutter build apk --release --dart-define-from-file=dart_defines.json` | `build/app/outputs/flutter-apk/app-release.apk` | 67.674.260 bytes (64,5 MB) | `√ Built` |
+| Release con Firebase, títulos, estadísticas, dictado e informes semanales | `flutter build apk --release --dart-define-from-file=dart_defines.json` | `build/app/outputs/flutter-apk/app-release.apk` | 67.739.856 bytes (64,6 MB) | `√ Built` |
 
 Verificación con `aapt dump badging`:
 
@@ -86,9 +86,10 @@ El APK release está firmado con el certificado **Android Debug**
 instalable y válido para pruebas, pero no para publicar en Google Play.
 
 La compilación release con acceso por correo y contraseña, títulos de registro,
-estadísticas, resumen y dictado por voz se copió además al escritorio como
-`DiarioEmocional-1.0.0-dictado-release.apk` para instalarla en el móvil. Requiere
-que el proyecto de Firebase tenga habilitado el proveedor
+estadísticas, resumen, dictado por voz e informes semanales se copió además al
+escritorio como
+`DiarioEmocional-1.0.0-informes-semanales-release.apk` para instalarla en el
+móvil. Requiere que el proyecto de Firebase tenga habilitado el proveedor
 **Correo electrónico/Contraseña** y Cloud Firestore creado.
 
 La primera compilación tardó unos 47 minutos porque Gradle descargó la
@@ -253,9 +254,9 @@ app. Marca solo lo que hayas verificado.
       escribir con el teclado.
 - [ ] El dictado reconoce el español del dispositivo.
 
-### Informe PDF
+### Informes PDF
 
-- [ ] El informe incluye cabecera con departamento, seudónimo y fecha.
+- [ ] El informe diario incluye cabecera con departamento, seudónimo y fecha.
 - [ ] Aparecen **todos** los registros del día, no solo el primero.
 - [ ] Los textos largos continúan en la página siguiente sin recortarse.
 - [ ] Los acentos, la eñe y los signos de apertura se ven correctamente.
@@ -265,8 +266,18 @@ app. Marca solo lo que hayas verificado.
 - [ ] La vista previa se puede cerrar y volver al historial.
 - [ ] Guardar muestra la ruta o confirmación y el archivo se puede abrir.
 - [ ] Compartir abre el diálogo del sistema con el PDF adjunto.
-- [ ] El nombre del archivo sigue el patrón
+- [ ] El nombre del archivo diario sigue el patrón
       `diario_emocional_AAAA-MM-DD.pdf`.
+- [ ] El selector **Día / Semana** cambia el periodo y las flechas navegan sin
+      permitir semanas futuras.
+- [ ] El informe semanal incluye el intervalo de lunes a domingo y todos los
+      registros de esos siete días.
+- [ ] El informe semanal muestra las métricas, el gráfico de emociones, la
+      distribución por grupos y las tablas de estadísticas y registros.
+- [ ] Las tablas se leen bien y continúan en la página siguiente sin cortar filas.
+- [ ] El nombre del archivo semanal sigue el patrón
+      `diario_emocional_semana_AAAA-MM-DD.pdf` con la fecha del lunes.
+- [ ] Una semana sin registros muestra un aviso y desactiva los botones.
 
 ### Configuración y datos
 

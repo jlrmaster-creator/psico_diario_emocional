@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 
+import '../../core/services/insights_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/date_utils.dart';
 import '../../data/services/pdf_report_service.dart';
@@ -15,7 +16,9 @@ import '../../widgets/common_widgets.dart';
 import '../../widgets/dialogs.dart';
 import 'pdf_preview_screen.dart';
 
-/// Pantalla de generación y compartición del informe diario.
+enum _ReportMode { day, week }
+
+/// Pantalla de generación y compartición de los informes PDF.
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
 
@@ -24,8 +27,47 @@ class ReportsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
-  DateTime _date = dateOnly(DateTime.now());
+  _ReportMode _mode = _ReportMode.day;
+  DateTime _anchor = dateOnly(DateTime.now());
   bool _busy = false;
+
+  bool get _isWeek => _mode == _ReportMode.week;
+
+  DateTime get _today => dateOnly(DateTime.now());
+
+  DateRange get _week => weekRange(_anchor);
+
+  String get _periodLabel => _isWeek
+      ? formatWeekRange(_week.start, _week.end)
+      : formatLongDate(_anchor);
+
+  String get _fileName => _isWeek
+      ? PdfReportService.weeklyReportFileName(_week.start)
+      : PdfReportService.dailyReportFileName(_anchor);
+
+  String get _previewTitle =>
+      _isWeek ? 'Informe semanal' : 'Informe del ${formatShortDate(_anchor)}';
+
+  bool get _canGoNext => _isWeek
+      ? _week.end.isBefore(weekRange(_today).end)
+      : _anchor.isBefore(_today);
+
+  List<EmotionalRecord> _recordsFor(List<EmotionalRecord> all) {
+    final filtered = _isWeek
+        ? recordsInRange(all, _week)
+        : recordsForDate(all, _anchor);
+    final copy = [...filtered];
+    copy.sort((a, b) {
+      final byDate = dateOnly(a.eventDate).compareTo(dateOnly(b.eventDate));
+      if (byDate != 0) return byDate;
+      final aTime = a.eventTime ?? formatTime(a.createdAt);
+      final bTime = b.eventTime ?? formatTime(b.createdAt);
+      final byTime = aTime.compareTo(bTime);
+      if (byTime != 0) return byTime;
+      return a.createdAt.compareTo(b.createdAt);
+    });
+    return copy;
+  }
 
   Future<Uint8List?> _generate(
     List<EmotionalRecord> records,
@@ -33,17 +75,28 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     String pseudonym,
   ) async {
     try {
-      return await ref
-          .read(pdfReportServiceProvider)
-          .buildDailyReport(
-            DailyReportData(
-              departmentName: department,
-              patientPseudonym: pseudonym,
-              date: _date,
-              records: records,
-              generatedAt: DateTime.now(),
-            ),
-          );
+      final service = ref.read(pdfReportServiceProvider);
+      if (_isWeek) {
+        return await service.buildWeeklyReport(
+          WeeklyReportData(
+            departmentName: department,
+            patientPseudonym: pseudonym,
+            weekStart: _week.start,
+            weekEnd: _week.end,
+            records: records,
+            generatedAt: DateTime.now(),
+          ),
+        );
+      }
+      return await service.buildDailyReport(
+        DailyReportData(
+          departmentName: department,
+          patientPseudonym: pseudonym,
+          date: _anchor,
+          records: records,
+          generatedAt: DateTime.now(),
+        ),
+      );
     } catch (error) {
       if (!mounted) return null;
       showErrorSnack(context, 'No se pudo generar el PDF. Inténtalo de nuevo.');
@@ -57,6 +110,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     String department,
     String pseudonym,
   ) async {
+    final fileName = _fileName;
+    final title = _previewTitle;
     setState(() => _busy = true);
     final bytes = await _generate(records, department, pseudonym);
     if (!mounted) return;
@@ -65,11 +120,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => PdfPreviewScreen(
-          bytes: bytes,
-          fileName: PdfReportService.dailyReportFileName(_date),
-          title: 'Informe del ${formatShortDate(_date)}',
-        ),
+        builder: (_) =>
+            PdfPreviewScreen(bytes: bytes, fileName: fileName, title: title),
       ),
     );
   }
@@ -79,6 +131,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     String department,
     String pseudonym,
   ) async {
+    final fileName = _fileName;
+    final subject = _isWeek
+        ? 'Diario emocional - Semana ${formatWeekRange(_week.start, _week.end)}'
+        : 'Diario emocional - ${formatReportDate(_anchor)}';
+    final body = _isWeek
+        ? 'Comparto el informe semanal de mi diario emocional correspondiente '
+              'a la semana del ${formatWeekRange(_week.start, _week.end)}.'
+        : 'Comparto el informe de mi diario emocional correspondiente al '
+              '${formatReportDate(_anchor)}.';
+
     setState(() => _busy = true);
     final bytes = await _generate(records, department, pseudonym);
     if (!mounted) return;
@@ -88,10 +150,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     try {
       await Printing.sharePdf(
         bytes: bytes,
-        filename: PdfReportService.dailyReportFileName(_date),
-        subject: 'Diario emocional - ${formatReportDate(_date)}',
-        body:
-            'Comparto el informe de mi diario emocional correspondiente al ${formatReportDate(_date)}.',
+        filename: fileName,
+        subject: subject,
+        body: body,
       );
     } catch (error) {
       if (!mounted) return;
@@ -108,6 +169,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     String department,
     String pseudonym,
   ) async {
+    final baseName = _isWeek
+        ? 'diario_emocional_semana_${DateFormat('yyyy-MM-dd').format(_week.start)}'
+        : 'diario_emocional_${DateFormat('yyyy-MM-dd').format(_anchor)}';
+
     setState(() => _busy = true);
     final bytes = await _generate(records, department, pseudonym);
     if (!mounted) return;
@@ -116,7 +181,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     try {
       final savedPath = await FileSaver.instance.saveFile(
-        name: 'diario_emocional_${DateFormat('yyyy-MM-dd').format(_date)}',
+        name: baseName,
         bytes: bytes,
         fileExtension: 'pdf',
         mimeType: MimeType.pdf,
@@ -138,25 +203,42 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     }
   }
 
-  void _changeDate(int days) {
-    final candidate = dateOnly(_date.add(Duration(days: days)));
-    if (candidate.isAfter(dateOnly(DateTime.now()))) return;
-    setState(() => _date = candidate);
+  void _changeMode(_ReportMode mode) {
+    if (mode == _mode) return;
+    setState(() {
+      _mode = mode;
+      _anchor = dateOnly(DateTime.now());
+    });
+  }
+
+  void _changePeriod(int direction) {
+    if (direction > 0 && !_canGoNext) return;
+    setState(() {
+      if (_isWeek) {
+        _anchor = DateTime(
+          _week.start.year,
+          _week.start.month,
+          _week.start.day + (7 * direction),
+        );
+      } else {
+        _anchor = dateOnly(_anchor.add(Duration(days: direction)));
+      }
+    });
   }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
       locale: const Locale('es'),
-      initialDate: _date,
+      initialDate: _anchor,
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
-      helpText: 'Fecha del informe',
+      helpText: _isWeek ? 'Semana del informe' : 'Fecha del informe',
       cancelText: 'Cancelar',
       confirmText: 'Aceptar',
     );
     if (picked == null) return;
-    setState(() => _date = dateOnly(picked));
+    setState(() => _anchor = dateOnly(picked));
   }
 
   @override
@@ -166,10 +248,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final department = profile?.departmentName ?? 'Departamento de Psicología';
     final pseudonym = profile?.pseudonym ?? 'Paciente';
 
-    final dayRecords = recordsAsync.value == null
+    final periodRecords = recordsAsync.value == null
         ? const <EmotionalRecord>[]
-        : recordsForDate(recordsAsync.value!, _date);
-    final canGenerate = dayRecords.isNotEmpty && !_busy;
+        : _recordsFor(recordsAsync.value!);
+    final canGenerate = periodRecords.isNotEmpty && !_busy;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Informes PDF')),
@@ -185,20 +267,45 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         data: (_) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           children: [
-            const InfoNote(
+            InfoNote(
               icon: Icons.picture_as_pdf_rounded,
-              text: 'Elige un día para crear un informe con todos sus registros. Después podrás verlo, guardarlo o compartirlo tú mismo.',
+              text: _isWeek
+                  ? 'Elige una semana para crear un informe con todos sus registros, '
+                        'gráficos y estadísticas de las emociones. Después podrás verlo, '
+                        'guardarlo o compartirlo tú mismo.'
+                  : 'Elige un día para crear un informe con todos sus registros. '
+                        'Después podrás verlo, guardarlo o compartirlo tú mismo.',
             ),
             const SizedBox(height: 16),
+            Center(
+              child: SegmentedButton<_ReportMode>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(
+                    value: _ReportMode.day,
+                    label: Text('Día'),
+                    icon: Icon(Icons.today_outlined, size: 18),
+                  ),
+                  ButtonSegment(
+                    value: _ReportMode.week,
+                    label: Text('Semana'),
+                    icon: Icon(Icons.view_week_outlined, size: 18),
+                  ),
+                ],
+                selected: {_mode},
+                onSelectionChanged: (selection) => _changeMode(selection.first),
+              ),
+            ),
+            const SizedBox(height: 14),
             AppCard(
               child: Column(
                 children: [
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => _changeDate(-1),
+                        onPressed: () => _changePeriod(-1),
                         icon: const Icon(Icons.chevron_left_rounded),
-                        tooltip: 'Día anterior',
+                        tooltip: _isWeek ? 'Semana anterior' : 'Día anterior',
                       ),
                       Expanded(
                         child: InkWell(
@@ -208,9 +315,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Column(
                               children: [
-                                const Text(
-                                  'Fecha del informe',
-                                  style: TextStyle(
+                                Text(
+                                  _isWeek
+                                      ? 'Semana del informe'
+                                      : 'Fecha del informe',
+                                  style: const TextStyle(
                                     fontSize: 10.5,
                                     color: AppTheme.textSecondary,
                                     letterSpacing: 0.3,
@@ -218,7 +327,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  formatLongDate(_date),
+                                  _periodLabel,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontSize: 15.5,
@@ -231,11 +340,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         ),
                       ),
                       IconButton(
-                        onPressed: _date.isBefore(dateOnly(DateTime.now()))
-                            ? () => _changeDate(1)
-                            : null,
+                        onPressed: _canGoNext ? () => _changePeriod(1) : null,
                         icon: const Icon(Icons.chevron_right_rounded),
-                        tooltip: 'Día siguiente',
+                        tooltip: _isWeek ? 'Semana siguiente' : 'Día siguiente',
                       ),
                     ],
                   ),
@@ -260,11 +367,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              dayRecords.isEmpty
-                                  ? 'Sin registros este día'
-                                  : dayRecords.length == 1
+                              periodRecords.isEmpty
+                                  ? _isWeek
+                                        ? 'Sin registros esta semana'
+                                        : 'Sin registros este día'
+                                  : periodRecords.length == 1
                                   ? '1 registro incluido'
-                                  : '${dayRecords.length} registros incluidos',
+                                  : '${periodRecords.length} registros incluidos',
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -272,8 +381,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              dayRecords.isEmpty
-                                  ? 'Prueba con otra fecha o crea un registro primero.'
+                              periodRecords.isEmpty
+                                  ? 'Prueba con otro periodo o crea un registro primero.'
                                   : 'Paciente: $pseudonym',
                               style: const TextStyle(
                                 fontSize: 11.5,
@@ -289,21 +398,21 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            if (dayRecords.isNotEmpty) ...[
-              const SectionHeader(
-                title: 'Registros del día',
+            if (periodRecords.isNotEmpty) ...[
+              SectionHeader(
+                title: _isWeek ? 'Registros de la semana' : 'Registros del día',
                 subtitle: 'Se incluirán todos en el PDF, en orden cronológico.',
               ),
-              for (final record in dayRecords)
+              for (final record in periodRecords)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: _ReportRecordRow(record: record),
+                  child: _ReportRecordRow(record: record, showDate: _isWeek),
                 ),
               const SizedBox(height: 14),
             ],
             FilledButton.icon(
               onPressed: canGenerate
-                  ? () => _viewPdf(dayRecords, department, pseudonym)
+                  ? () => _viewPdf(periodRecords, department, pseudonym)
                   : null,
               icon: _busy
                   ? const SizedBox(
@@ -320,7 +429,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             const SizedBox(height: 10),
             OutlinedButton.icon(
               onPressed: canGenerate
-                  ? () => _sharePdf(dayRecords, department, pseudonym)
+                  ? () => _sharePdf(periodRecords, department, pseudonym)
                   : null,
               icon: const Icon(Icons.share_outlined),
               label: const Text('Compartir PDF'),
@@ -328,7 +437,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             const SizedBox(height: 10),
             OutlinedButton.icon(
               onPressed: canGenerate
-                  ? () => _savePdf(dayRecords, department, pseudonym)
+                  ? () => _savePdf(periodRecords, department, pseudonym)
                   : null,
               icon: const Icon(Icons.download_rounded),
               label: const Text('Guardar PDF en el dispositivo'),
@@ -346,13 +455,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 }
 
 class _ReportRecordRow extends StatelessWidget {
-  const _ReportRecordRow({required this.record});
+  const _ReportRecordRow({required this.record, this.showDate = false});
 
   final EmotionalRecord record;
+  final bool showDate;
 
   @override
   Widget build(BuildContext context) {
     final time = record.eventTime ?? formatTime(record.createdAt);
+    final badge = showDate
+        ? '${formatDayMonth(record.eventDate)} · $time'
+        : time;
+
     return AppCard(
       padding: const EdgeInsets.all(13),
       child: Row(
@@ -364,7 +478,7 @@ class _ReportRecordRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              time,
+              badge,
               style: const TextStyle(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
